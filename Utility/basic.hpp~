@@ -1,0 +1,84 @@
+
+/* basic calculations */
+
+// COMPILATION AND RUN COMMANDS:
+// -
+// -
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#pragma once
+
+#include <vector>
+#include <cmath>
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+inline int ifloor (double doubval) {
+    return ( doubval >= 0. ? (int)(doubval) : ((int)doubval)-1 );
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+inline long double dnearbyint (double doubval) {
+    return ( doubval >= 0. ? (long)(doubval + 0.5) : (long)(doubval - 0.5) );
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+inline int inearbyint (double doubval) {
+    return ( doubval >= 0. ? (int)(doubval + 0.5) : (int)(doubval - 0.5) );
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+template<class T>
+inline void SWAP (T &a, T &b) {
+    T dum=a;
+    a=b;
+    b=dum;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void get_img_pos (double **x, double **y, int nsteps, int natoms, double lx, double ly) {
+  /* calculate the image positions in the central box */
+  
+  for (int i = 0; i < nsteps; i++) {
+    for (int j = 0; j < natoms; j++) {
+      
+      x[i][j] -= ifloor(x[i][j]/lx)*lx;
+      y[i][j] -= ifloor(y[i][j]/ly)*ly;
+      
+    }
+  }
+ 
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+inline double get_min_img_dist (double dx, double lx) {
+  /* calculate the minimum image distance */
+  
+  return dx-lx*dnearbyint(dx/lx);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class Bin {
+  /* data structure to keep track of square bins given the index */
+  
+ public:
+  int idx;				// of this bin
+  int numElements;			// of this bin
+  vector<int> idx_of_elements;		// of this bin	
+  double bin_width;			// of this bin
+  
+};
+
+Bin::Bin (int i, double w) {
+  idx = i;
+  bin_width = w;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////

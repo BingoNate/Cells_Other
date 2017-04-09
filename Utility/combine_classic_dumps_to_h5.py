@@ -1,0 +1,273 @@
+
+""" Combine multiple dump files from different restart instances into a single hdf5 file"""
+
+### example command line arguments: 
+###    -fl=/homea/ias2/duman/Cells_in_LAMMPS/ -t -d=0.8 -e=1.0 -f=0.5 -a=10.0 
+###         -dt=0.001 -ns=50000 -b=0.5 -s=1.0 -nc=5000
+
+##############################################################################
+
+import argparse
+import numpy as np
+import os
+import h5py
+
+##############################################################################
+
+def read_contextual_info():
+    """ read the contextual information provided by the user"""
+    
+    ### get the data folder and the last timestep info
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-fl", "--folder", help="Folder containing data")
+    parser.add_argument("-t", "--tstep", nargs="?", const="100000000", \
+                            type=int, help="The last time step that is being searched for")
+    parser.add_argument("-d", "--density", type=float, help="Packing fraction of the system")  
+    parser.add_argument("-e", "--eps", type=float, help="Strength of LJ interaction")
+    parser.add_argument("-f", "--fp", type=float, help="Propulsion force")
+    parser.add_argument("-a", "--areak", type=float, help="Area constraint strength")
+    parser.add_argument("-dt", "--timestep", type=float, help="Timestep of the simulation")
+    parser.add_argument("-ns", "--nsamp", type=int, help="Sampling rate of data")
+    parser.add_argument("-b", "--bl", type=float, help="Bond length of the simulation")    
+    parser.add_argument("-s", "--sigma", type=float, help="Lennard Jones length")     
+    parser.add_argument("-nc", "--ncells", type=int, help="Number of cells")
+    args = parser.parse_args()
+    
+    ### generate folder path
+    
+    folder = args.folder + 'density_' + str(args.density) + '/eps_' + str(args.eps) + \
+        '/fp_' + str(args.fp) + '/areak_' + str(args.areak)
+    fpath = folder + '/out1.dump'
+    assert os.path.exists(fpath), "\nOUT1.DUMP DOES NOT EXIST FOR: " + folder 
+
+    print fpath
+
+    ### determine the total number of beads and the box size
+    
+    fl = open(fpath, 'r')
+    fl.readline()
+    fl.readline()
+    fl.readline()
+    line = fl.readline()
+    line = line.split()
+    nbeads = int(line[0])
+    
+    fl.readline()
+    line = fl.readline()
+    line = line.split()
+    lx = float(line[1])
+    line = fl.readline()
+    line = line.split()
+    ly = float(line[1])
+
+    fl.close()
+    
+    ### total number of steps
+    
+    nsteps = args.tstep/args.nsamp
+    nsteps += 1
+            
+    return folder, nbeads, nsteps, lx, ly, args
+
+##############################################################################
+    
+def get_number_of_snaps(f, nbeads):
+    """ determine the number of snapshots in the file"""
+    
+    os.system('wc -l ' + f + ' > tmp.txt')
+    ifile = open('tmp.txt')
+    line = ifile.readline()
+    line = line.split()
+    nlines = int(line[0])
+    nsnaps = nlines/(nbeads+9)
+    ifile.close()
+    os.system('rm tmp.txt')
+    
+    return nsnaps
+
+##############################################################################
+    
+def read_pos(fl, x, nbeads, nsnaps, lx, ly, checked, tstep_cnt, T):
+    """ read the position data from the file and return the last timestep at the end"""
+
+    ### read the positions unique per each tstep in a single dump file
+    
+    already_checked = False
+    for snap in range(nsnaps):
+        
+        ### read the headers to check the uniqueness of current tstep
+        
+        fl.readline()
+        line = fl.readline()
+        line = line.split()
+        tstep = int(line[0])
+        
+        ### finish if the last tstep is exceeded already
+        
+        if tstep > T:
+            return tstep_cnt, tstep
+        
+        ### make sure the current tstep is unique
+        
+        if tstep not in checked:
+            checked.append(tstep)
+            tstep_cnt += 1
+            already_checked = False
+        else:
+            print "ALREADY CHECKED " + str(tstep)             
+            already_checked = True
+    
+        ### read the remaining part of the header part
+        
+        for j in range(7):
+            fl.readline()
+         
+        ### read the positions per bead if the tstep is unique
+        
+        for j in range(nbeads):
+            line = fl.readline()
+            if already_checked:
+                continue
+            line = line.split()
+            if len(line) < 2:
+                print line
+                continue
+            bid = int(line[0]) - 1
+            x[tstep_cnt, 0, bid] = float(line[2])*lx
+            x[tstep_cnt, 1, bid] = float(line[3])*ly
+
+        print tstep_cnt, tstep
+
+    return tstep_cnt, tstep
+
+##############################################################################
+    
+def read_pos_from_dump_files(folder, nbeads, nsteps, T, lx, ly):
+    """ read the position data of each dump file until the last tstep is reached"""
+
+    ### generate file path and the total number of snapshots in the file
+    
+    current_file_number = 0
+    x = np.zeros((nsteps, 2, nbeads), dtype=np.float32)
+    tstep_cnt = -1
+    checked = []
+    tstep = 0
+    
+    while tstep < T:
+        
+        current_file_number += 1
+        fpath = folder + '/out' + str(current_file_number) + '.dump'
+        assert os.path.exists(fpath), "out dump file does NOT exist for: " + fpath
+        fl = open(fpath, 'r')
+        nsnaps = get_number_of_snaps(fpath, nbeads)
+        
+        ### read the positions unique per each tstep in a single dump file
+        
+        tstep_cnt, tstep = read_pos(fl, x, nbeads, nsnaps, lx, ly, checked, tstep_cnt, T)
+        fl.close()
+
+    return x
+    
+##############################################################################
+    
+def write_h5_file(folder, x, nbeads, nsteps, lx, ly, args):
+    """ write data to hdf5 file"""
+    
+    ### file path
+    
+    fpath = folder + '/out.h5'
+    fl = h5py.File(fpath, 'w')
+    
+    ### positions of beads
+    
+    pos = fl.create_group('positions')
+    pos.create_dataset('x', (nsteps, 2, nbeads), data=x, dtype=np.float32, compression='gzip') 
+    
+    ### simulation information
+    
+    info = fl.create_group('info')
+    box = info.create_group('box')
+    box.create_dataset('x', data=lx)
+    box.create_dataset('y', data=ly)
+    info.create_dataset('dt', data=args.timestep)
+    info.create_dataset('nsteps', data=nsteps)
+    info.create_dataset('nbeads', data=nbeads)
+    info.create_dataset('nsamp', data=args.nsamp)
+    
+    ### simulation parameters
+    
+    param = fl.create_group('param')
+    param.create_dataset('eps', data=args.eps)
+    param.create_dataset('rho', data=args.density)
+    param.create_dataset('fp', data=args.fp)
+    param.create_dataset('areak', data=args.areak)
+    param.create_dataset('bl', data=args.bl)
+    param.create_dataset('sigma', data=args.sigma)
+    
+    fl.close()
+    
+    return
+
+##############################################################################
+
+def append_nbpc_data(folder, nbeads, args):
+    """ append the number of beads per cell data to the existing data file"""
+    
+    nbpc = np.zeros((args.ncells), dtype=int)
+    
+    ### read the input file in equib until the bonds section
+    
+    ifilepath = args.folder + 'density_' + str(args.density) + '/equib/input.data'
+    ifile = open(ifilepath, 'r')
+    
+    for j in range(2*nbeads):
+        line = ifile.readline()
+        line = line.split()
+        if len(line) > 0:
+            if line[0] == 'Bonds':
+                break
+    
+    ### check the bonds to determine number of beads per cell
+    
+    k = 0
+    ifile.readline()
+    for j in range(nbeads):
+        line = ifile.readline()
+        line = line.split()
+        b1 = int(line[2])
+        b2 = int(line[3])
+        if b1 > b2:
+            nbpc[k] = b1-b2+1
+            k += 1
+                
+    ifile.close()
+    
+    ### append the ncells and nbpc data to the existing file
+    
+    fpath = folder + '/out.h5'
+    fl = h5py.File(fpath, 'a')
+    cell = fl.create_group('cell')
+    cell.create_dataset('ncells', data=args.ncells)
+    cell.create_dataset('nbpc', data=nbpc)
+    fl.close()
+
+    return
+       
+##############################################################################
+    
+def main():
+
+    folder, nbeads, nsteps, lx, ly, args = read_contextual_info()
+    x = read_pos_from_dump_files(folder, nbeads, nsteps, args.tstep, lx, ly)
+    write_h5_file(folder, x, nbeads, nsteps, lx, ly, args)
+    append_nbpc_data(folder, nbeads, args)
+    
+    return
+    
+##############################################################################
+
+if __name__ == '__main__':
+    main()    
+    
+##############################################################################

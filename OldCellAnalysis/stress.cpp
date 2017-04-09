@@ -1,0 +1,355 @@
+
+//+++++++++++++++++
+//++ Data analysis with postprocessing for stress calculation
+//+++++++++++++++++
+
+#include <iostream>
+#include <fstream>
+#include <iomanip>
+#include <string>
+#include <sstream>
+#include <vector>
+#include <cstdlib>
+#include <cmath>
+#include <map>
+#include <algorithm>
+#include "variables.h"
+#include "basic.h"
+#include "pointbox.h"
+#include "kdtree.h"
+
+using namespace std;
+
+#define pi M_PI
+
+
+// +++++++
+// DATA TYPES
+// +++++++
+
+// +++++
+// Cell
+// +++++
+
+class SimBox;       // Forward declaration
+
+class Cell
+{
+    
+public:
+    vector<double> xpos;
+    vector<double> ypos;
+    double xi;
+    double yi;
+    vector<double> xvel;
+    vector<double> yvel;
+    int numCell;
+    void getImag(SimBox a, int i);
+    
+    Cell() {}
+    ~Cell() {}
+    
+};
+
+// +++++
+
+
+// +++++
+// The periodic box
+// +++++
+
+class SimBox
+{
+    
+public:
+    friend class Cell;
+    SimBox() {}
+    ~SimBox() {}
+    void setWidth( double wdth );
+    void setHeight( double hght );
+    double getWidth() { return width; }
+    double getHeight() { return height; }
+    double getArea() { return width*height; }
+    
+private:
+    double width;
+    double height;
+    
+};
+
+void SimBox::setWidth( double wdth ){
+    width = wdth;
+}
+
+void SimBox::setHeight( double hght ){
+    height = hght;
+}
+
+void Cell::getImag(SimBox a, int i){
+    xi = xpos[i] - a.width*ifloor(xpos[i]/a.width);
+    yi = ypos[i] - a.height*ifloor(ypos[i]/a.width);
+}
+
+// +++++
+
+
+// +++++
+// Simulation details
+// +++++
+
+class Data
+{
+    
+public:
+    Data() {}
+    ~Data() {}
+    void setNumStep( double nst );
+    void setNumDelay( double nd );
+    void setNumTotalDelay();
+    double getNumStep() { return numStep; }
+    double getNumDelay() { return numDelay; }
+    double getNumTotalDelay() { return numTotalDelay; }
+    
+private:
+    double numStep;
+    double numDelay;
+    double numTotalDelay;
+    
+};
+
+void Data::setNumStep( double nst ){
+    numStep = nst;
+}
+
+void Data::setNumDelay( double nd ){
+    numDelay = nd;
+}
+
+void Data::setNumTotalDelay(){
+    numTotalDelay = numStep - numDelay;
+}
+
+// +++++
+
+// Function for reading the positions
+void readData( vector<Cell> & cells, char * file_name, char xory, int& sample_cnt, int sample_data ){
+    
+    // Inputs
+    int cell_cnt = -1;
+    ifstream inputData;
+    inputData.open( file_name );
+    
+    // Holder for each line
+    string line_holder;
+    
+    // Yield error in case of a problem
+    if( inputData.fail() ){
+        cerr << "The file cannot be opened!\n";
+        exit(1);
+    }
+    
+    // Decide whether to read the x value or the value
+    switch (xory) {
+            
+            // For x
+        case 'x':
+            
+            // Read the lines
+            while( inputData.good() ){ // If everything is good ...
+                
+                while( getline(inputData, line_holder) )
+                { // Read the lines one by one
+                    
+                    // Data sampling -optional-
+                    sample_cnt++;
+                    if( sample_cnt % sample_data == 0 ){
+                        
+                        // Holder for each element in the read line
+                        istringstream stream_holder( line_holder );
+                        
+                        // Yet another holder for data type of each element
+                        double double_holder;
+                        
+                        // Now read the values in a line, finally ...
+                        while ( stream_holder >> double_holder )
+                        {
+                            
+                            // Each element in the line consists of center of mass of cells at that given time instant
+                            cell_cnt++;
+                            cells[cell_cnt].xpos.push_back( double_holder );
+                            
+                        } // Read a particular line
+                        
+                        cell_cnt = -1;
+                        
+                    } // read line by line
+                } // data sampling
+            } // while data is good
+            
+            break;
+            
+            // For y
+        case 'y':
+            
+            // Read the lines
+            while( inputData.good() ){ // If everything is good ...
+                
+                while( getline(inputData, line_holder) )
+                { // Read the lines one by one
+                    
+                    // Data sampling -optional-
+                    sample_cnt++;
+                    if( sample_cnt % sample_data == 0 ){
+                        
+                        // Holder for each elements in the read line
+                        istringstream stream_holder( line_holder );
+                        
+                        // Yet another holder for data type of each element
+                        double double_holder;
+                        
+                        // Now read the values in a line, finally ...
+                        while ( stream_holder >> double_holder )
+                        {
+                            
+                            // Each element in the line consists of center of mass of cells at that given time instant
+                            cell_cnt++;
+                            cells[cell_cnt].ypos.push_back( double_holder );
+                            
+                        } // Read a particular line
+                        
+                        cell_cnt = -1;
+                        
+                    } // read line by line
+                } // data sampling
+            } // while data is good
+            
+            break;
+            
+    } // switch end
+    
+    // Good, you're done!!
+    inputData.close();
+    
+}
+
+
+// +++++++
+
+
+
+int main( int argc, char *argv[] ){
+    
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    //++ Get the data
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    // Choose the data to be used
+    const int nsamp = samplePostData;       // Sampling interval
+    const double dtSamp = nsamp*dt;         // Time units between two data points
+    
+    // Instantiate the data structure
+    vector<Cell> cells( M );
+    
+    // Set filenames
+    char * x_input_file = argv[1];        // Filename for the x data
+    char * y_input_file = argv[2];        // Filename for the y data
+    
+    // Read the data to the cells
+    int sample_cnt = -1;
+    int sample_data = 1;
+    char getX = 'x';
+    readData( cells, x_input_file, getX, sample_cnt, sample_data );
+    sample_cnt = -1;
+    char getY = 'y';
+    readData( cells, y_input_file, getY, sample_cnt, sample_data );
+    
+    // Set general simulation variables
+    Data simData;
+    simData.setNumStep( cells[0].xpos.size() );
+    simData.setNumDelay( sqrt( cells[0].xpos.size() ) );
+    simData.setNumTotalDelay();
+    
+    const double T = simData.getNumStep();              // Total time
+    const double D = simData.getNumDelay();             // Last delay time
+    const double TD = simData.getNumTotalDelay();       // Total time - last delay time
+    
+    // Set the box
+    SimBox box;
+    box.setWidth( boxSize_x );
+    box.setHeight( boxSize_y );
+    
+    const double Lx = box.getWidth();
+    const double Ly = box.getHeight();
+    
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    //++ Do the analysis
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    // Calculate the velocities
+    for(int m = 0; m < M; m++){
+        for(int i = 1; i < T; i++){ // Careful with the starting index!
+            cells[m].xvel.push_back( (cells[m].xpos[i]-cells[m].xpos[i-1])/dtSamp );
+            cells[m].yvel.push_back( (cells[m].ypos[i]-cells[m].ypos[i-1])/dtSamp );
+        }
+    }
+    
+    const int TV = cells[0].xvel.size();
+    const int DV = (int)sqrt(TV);
+    const int TVD = TV - DV;
+    
+    
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    //++ Stress calculation
+    //++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    
+    double eps48 = 48*eps;
+    double sig2 = sig*sig;
+    double Fij = 0.;
+    double Fij_avg = 0.;
+    double dcut = Rcut + R_avg;
+    double dcut2 = dcut*dcut;
+    
+    for(int i = 0; i < T; i++){
+        
+        for(int m1 = 0; m1 < M-1; m1++){
+            for(int m2 = m1+1; m2 < M; m2++){
+                
+                double dx = cells[m2].xpos[i] - cells[m1].xpos[i];
+                dx -= Lx*dnearbyint( dx/Lx );
+                double dy = cells[m2].ypos[i] - cells[m1].ypos[i];
+                dy -= Ly*dnearbyint( dy/Ly );
+                double dr2 = dx*dx + dy*dy;
+                
+                if( dr2 < dcut2 ){
+                    double p3 = sig2/dr2;
+                    p3 = p3*p3*p3;
+                    double tempFx = eps48*(p3*p3 - p3/2.)*dx/dr2;
+                    double tempFy = eps48*(p3*p3 - p3/2.)*dy/dr2;
+                    Fij_avg += tempFx*dx + tempFy*dy;
+                }
+                
+            }
+            
+            cells[m1].xi = cells[m1].xpos[i] - Lx*ifloor( cells[m1].xpos[i]/Lx );
+            cells[m1].yi = cells[m1].ypos[i] - Ly*ifloor( cells[m1].ypos[i]/Ly );
+            Fij_avg += gam*cells[m1].xvel[i]*cells[m1].xi + gam*cells[m1].yvel[i]*cells[m1].yi;
+
+        }
+        
+        Fij += Fij_avg/(2*M);
+        
+        Fij_avg = 0;
+        
+    }
+    
+    Fij /= T;
+    
+    ofstream out1;
+    out1.open( "stress_int.txt", ios::out | ios::app );
+    out1 << dens << "\t" << Fmc << "\t" << eps << "\t" << Fij << "\n";
+    out1.close();
+    
+}
