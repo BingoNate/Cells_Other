@@ -96,7 +96,7 @@ class Simulation:
     """ data structure for storing general simulation information"""
 
     def __init__(self, lx, ly, dt, nsteps, ncells, nbeads, nsamp, nbpc, \
-                     eps, rho, fp, areak, bl, sigma):
+                     eps, rho, fp, areak, bl, sigma, kappa=100.0):
         
         self.lx = lx
         self.ly = ly
@@ -112,6 +112,7 @@ class Simulation:
         self.areak = areak
         self.bl = bl
         self.sigma = sigma
+        self.kappa = kappa
         
         ### normalize certain variables
           
