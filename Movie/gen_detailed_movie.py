@@ -78,7 +78,7 @@ def plot_frames(beads, cells, sim, ti, tf, savebase, save_eps):
     ### set general plot properties
 
     savebase += 'eps_' + str(sim.eps) + '_fp_' + str(sim.fp) + \
-        '_areak_' + str(sim.areak) + '/'
+        '_areak_' + str(sim.areak) + '_kappa_' + str(sim.kappa) + '/'
     os.system("mkdir -p " + savebase)
     quant_steps = 2056
     
@@ -290,12 +290,13 @@ def main():
                         help="First frame of the video (in terms of frame number), you can also leave it empty")
     parser.add_argument("-tf","--fin_time", nargs="?", const=1000, type=int, \
                         help="Last frame of the video (in terms of frame number), you can also leave it empty")
+    parser.add_argument("-b","--bending", action="store_true", help="Decide whether to take bending rigidity as a parameter or not")                                    
     parser.add_argument("-s","--save_eps", action="store_true", help="Decide whether to save in eps or not")            
     args = parser.parse_args()
     
     ### read the data and general information from the folder
     
-    sim, cells, beads = read_write.read_h5_file(args.folder)
+    sim, cells, beads = read_write.read_h5_file(args.folder, args.bending)
     beads.get_img_pos(sim.lx)
     cells.get_img_pos(sim.lx)
     print "folder = ", args.folder
