@@ -16,7 +16,7 @@ import misc_tools
 
 ##############################################################################
     
-def read_h5_file(folder):
+def read_h5_file(folder, bending='no'):
     """ read data from hdf5 file"""
     
     ### file path
@@ -54,13 +54,16 @@ def read_h5_file(folder):
     areak = fl['/param/areak'][...]
     bl = fl['/param/bl'][...]
     sigma = fl['/param/sigma'][...]
-    
+    kappa = 100.0
+    if bending:
+        kappa = fl['/param/kappa'][...]
+        
     fl.close()
     
     ### generate classes to submerge data
     
     sim = misc_tools.Simulation(lx, ly, dt, nsteps, ncells, nbeads, nsamp, nbpc, \
-                     eps, rho, fp, areak, bl, sigma)
+                     eps, rho, fp, areak, bl, sigma, kappa)
     cells = misc_tools.Cells(comu, pol, nbpc, sim)
     beads = misc_tools.Beads(xu, cid)
     
@@ -68,7 +71,7 @@ def read_h5_file(folder):
 
 ##############################################################################
     
-def read_sim_info(folder):
+def read_sim_info(folder, bending='no'):
     """ read simulation info from hdf5 file"""
     
     ### file path
@@ -99,13 +102,16 @@ def read_sim_info(folder):
     areak = fl['/param/areak'][...]
     bl = fl['/param/bl'][...]
     sigma = fl['/param/sigma'][...]
+    kappa = 100.0
+    if bending:
+        kappa = fl['/param/kappa'][...]
     
     fl.close()
     
     ### generate classes to submerge data
     
     sim = misc_tools.Simulation(lx, ly, dt, nsteps, ncells, nbeads, nsamp, nbpc, \
-                     eps, rho, fp, areak, bl, sigma)
+                     eps, rho, fp, areak, bl, sigma, kappa)
     
     return sim
     
@@ -193,7 +199,7 @@ def gen_folders(eps, fp, areak, analysis, dbase, analysisdbase):
 def main():
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-fl", "--folder", help="Folder containing data")        
+    parser.add_argument("-fl", "--folder", help="Folder containing data")  
     args = parser.parse_args()    
     read_h5_file(args.folder)
     
