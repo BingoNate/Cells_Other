@@ -103,7 +103,7 @@ void calc_dynamical_matrix (MatrixXd &Dab, double **x, double **y,
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void diag_dynamical_matrix(MatrixXd &Dab, double *evals) {
+void diag_dynamical_matrix(MatrixXd &Dab, double *evals, const int ncells) {
   /* diagonalize the dynamical matrix to calculate the eigenvalues */
   
   cout << "Diagonalizing the dynamical matrix" << endl;
@@ -191,7 +191,7 @@ int main (int argc, char *argv[]) {
   
   // diagonalize the dynamical matrix
   
-  diag_dynamical_matrix(Dab, evals);
+  diag_dynamical_matrix(Dab, evals, ncells);
 		    
   // write the computed data
   
@@ -201,7 +201,7 @@ int main (int argc, char *argv[]) {
   
   // deallocate the arrays
   
-  delete [] evals_transformed;
+  delete [] evals;
   for (int i = 0; i < nsteps; i++) {
     delete [] x[i];
     delete [] y[i];
