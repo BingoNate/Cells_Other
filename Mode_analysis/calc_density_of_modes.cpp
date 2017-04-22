@@ -69,30 +69,30 @@ void calc_dynamical_matrix (MatrixXd &Dab, double **x, double **y,
       
       double row = 0.;
       if (i % 2 == 0) {
-	row = x[step][i] - xavg[i];
+        row = x[step][i] - xavg[i];
       }
       else {
-	row = y[step][i] - yavg[i];
+        row = y[step][i] - yavg[i];
       }
       
       for (int j = 0; j < 2*ncells; j++) {
 	
-	double column = 0.;
-	if (j % 2 == 0) {
-	  column = x[step][j] - xavg[j];
-	}
-	else {
-	  column = y[step][j] - yavg[j];
-	}
-	
-	Dab(i, j) += row*column;
+        double column = 0.;
+        if (j % 2 == 0) {
+          column = x[step][j] - xavg[j];
+        }
+        else {
+          column = y[step][j] - yavg[j];
+        }
+        
+        Dab(i, j) += row*column;
 	
       }	  // second cells loop (column)
     }  	  // first cells loop (row)
     
     for (int i = 0; i < 2*ncells; i++) {
       for (int j = 0; j < 2*ncells; j++) {
-	Dab(i, j) /= nsteps;
+        Dab(i, j) /= nsteps;
       }
     }
     
@@ -103,7 +103,7 @@ void calc_dynamical_matrix (MatrixXd &Dab, double **x, double **y,
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void diag_dynamical_matrix(MatrixXd &Dab, VectorXd &evals) {
+void diag_dynamical_matrix(MatrixXd &Dab, double *evals) {
   /* diagonalize the dynamical matrix to calculate the eigenvalues */
   
   cout << "Diagonalizing the dynamical matrix" << endl;
@@ -114,7 +114,8 @@ void diag_dynamical_matrix(MatrixXd &Dab, VectorXd &evals) {
   
   cout << es.eigenvalues() << endl;
   
-  evals = es.eigenvalues();
+  for (int j = 0; j < 2*ncells; j++)
+    evals[j] = es.eigenvalues()(j);
   
   return;
 }
@@ -180,7 +181,9 @@ int main (int argc, char *argv[]) {
   
   MatrixXd Dab(2*ncells, 2*ncells);
   Dab << MatrixXd::Zero(2*ncells, 2*ncells);
-  VectorXd evals = VectorXd::Zero(2*ncells);
+  double *evals = new double[2*ncells];
+  for (int j = 0; j < 2*ncells; j++)
+    evals[j] = 0.;
   
   // calculate the dynamical matrix
   
@@ -192,12 +195,9 @@ int main (int argc, char *argv[]) {
 		    
   // write the computed data
   
-  double *evals_transformed = new double[2*ncells];
-  for (int j = 0; j < 2*ncells; j++) 
-    evals_transformed[j] = evals(j);
   string outfilepath = argv[2];
   cout << "Writing density of modes to the following file: \n" << outfilepath << endl;
-  write_1d_analysis_data(evals_transformed, 2*ncells, outfilepath);
+  write_1d_analysis_data(evals, 2*ncells, outfilepath);
   
   // deallocate the arrays
   
