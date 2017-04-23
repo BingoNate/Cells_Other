@@ -90,13 +90,13 @@ void calc_dynamical_matrix (MatrixXd &Dab, double **x, double **y,
       }	  // second cells loop (column)
     }  	  // first cells loop (row)
     
-    for (int i = 0; i < 2*ncells; i++) {
-      for (int j = 0; j < 2*ncells; j++) {
-        Dab(i, j) /= nsteps;
-      }
-    }
-    
   }       // timesteps loop
+  
+  for (int i = 0; i < 2*ncells; i++) {
+    for (int j = 0; j < 2*ncells; j++) {
+      Dab(i, j) /= nsteps;
+    }
+  }
   
   return;
 }
@@ -111,11 +111,11 @@ void diag_dynamical_matrix(MatrixXd &Dab, double *evals, const int ncells) {
   // diagonalize the dynamical matrix
 
   SelfAdjointEigenSolver<MatrixXd> es(Dab);
-  
+  if (es.info() != Success) abort();
   cout << es.eigenvalues() << endl;
   
   for (int j = 0; j < 2*ncells; j++)
-    evals[j] = es.eigenvalues()(j);
+    evals[j] = es.eigenvalues()[j];
   
   return;
 }
