@@ -61,7 +61,10 @@ def plot_data(x, data, param_choice, sims, savebase, savefolder):
     
         label = r'$\epsilon=$' + str(sim.eps) + '$,f_{m}=$' + str(sim.fp) + \
             '$,\kappa_{A}=$' + str(sim.areak)
-        line0 = ax0.plot(x/sim.r_avg, y, \
+        print y
+        x[5] = 0.0
+        y[5] = 1.0
+        line0 = ax0.plot(x[5:]/sim.r_avg, y[5:], \
                          linewidth=2.0, label=label)
     
     ### labels
@@ -71,7 +74,7 @@ def plot_data(x, data, param_choice, sims, savebase, savefolder):
 
     ### limits
 
-    ax0.set_xlim((0, 70))
+    ax0.set_xlim((-1, 70))
     ax0.set_ylim((-0.2, 1.0))
     
     ### ticks
@@ -116,7 +119,7 @@ def main():
     ### make the parameter choice
     
     # motility
-    fp = [1.0, 3.0, 10.0]
+    fp = [1.0, 5.0, 10.0]
     eps = 1.0
     areak = 10.0
     param = fp

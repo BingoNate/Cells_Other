@@ -298,7 +298,7 @@ int main (int argc, char *argv[]) {
 
   // set variables related to the analysis
   
-  const int delta = 4;                   // number of data points between two steps
+  const int delta = 3;                   // number of data points between two steps
                                          // to calculate velocity
   const int nvels = nsteps-delta;        // number of data points in the velocity arrays
   
@@ -314,8 +314,9 @@ int main (int argc, char *argv[]) {
   
   // calculate the velocities per bin (square box and bin sizes are assumed!)
   
-  double wbin = 18.; 			// bin width
-  double woverlap = wbin*3./4.;		// bin overlap distance (currently %75)
+  double wbin = 16.; 			// bin width
+  //double woverlap = wbin*3./4.;		// bin overlap distance (currently %75)
+  double woverlap = wbin*1./2.;		// bin overlap distance (currently %75)
   const int nbins = int(lx/wbin + 0.5);
   wbin = lx/nbins;
   vector<double> vx_bin(nvels*nbins*nbins, 0.0);

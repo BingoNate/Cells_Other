@@ -24,43 +24,18 @@ from scipy.optimize import curve_fit
 
 ##########################################################################
 
-def up_power_law(x, a, b):
+def power_law(x, a, b):
     return a * x**b
 
 ##########################################################################
 
-def down_power_law(x, a, b):
-    return a * x**(-b)
+def five_thirds(x, a):
+    return a * x**(-5./3.)
 
-##########################################################################
-
-def exp_law(x, a, b):
-    return a * np.exp(-x/b)
-
-##########################################################################
-
-def power_law_with_exp_tail(x, a, b):
-    return (x**(-a))*np.exp(-x/b)
+##############################################################################
     
-##########################################################################
-
-def power_law_with_up_exp_tail(x, a, b):
-    return (x**(-a))*np.exp(x/b)    
-
-##########################################################################
-
-def mixed_power_law_with_exp_tail(x, a, b, c, d, f):
-    return (x**(-a))*np.exp(-x/b) + c*(x**(d))*np.exp(-x/f)
-
-##########################################################################
-    
-def mixed_power_law_with_exp_tail_2(x, a, b, c, d):
-    return (x**(b))*np.exp(-x/c) + a*(x**(-d))  
-
-##########################################################################
-
-def stretch_exp_law(x, a, b, c):
-    return a * np.exp(-(x/c)**b)
+def thirds(x, a):
+    return a * x**(-3.)
     
 ##############################################################################
      
@@ -69,13 +44,32 @@ def plot_data(x, y, sim, savebase, savefolder, save_eps):
 
     ### set normalization parameter 
     
-    knorm = 2.*np.pi/sim.r_avg
+    knorm = np.pi/sim.r_avg
 
+    ### pick out the relevant portion of the data
+    xd = 2.*np.pi/((sim.lx-4)/2.)
+    dc = np.argmin(np.abs(x-xd))
+    xu = 2.*np.pi/(2.*sim.r_avg+4)
+    uc = np.argmin(np.abs(x-xu))
+    print dc, uc
+    dcf = 54
+    ucf = 260
+    dc = 0
+    uc = len(x)-55
+    print dc, uc
+
+    ### normalization and appropriate data range selection
+    
+    xnf = x[dcf:ucf]/knorm
+    ynf = y[dcf:ucf]
+    xn = x[dc:uc]/knorm
+    yn = y[dc:uc]
+    
     ### curve fitting
     
-    popt, pcov = curve_fit(up_power_law, x, y)
-    yfit = up_power_law(x, popt[0], popt[1])
-    print popt[1]
+#    popt, pcov = curve_fit(five_thirds, xnf, ynf)
+#    yfit = five_thirds(xnf, popt[0])
+#    print popt[0]
                           
     ### set general plot properties
 
@@ -98,10 +92,20 @@ def plot_data(x, y, sim, savebase, savefolder, save_eps):
     ax0 = subp.addSubplot()
     
     label = '$\\epsilon=$' + str(sim.eps) + '$,f=$' + str(sim.fp) + '$,\\kappa_{A}=$' + str(sim.areak)
-    line0 = ax0.plot(x/knorm, y, \
+    line0 = ax0.loglog(xn, yn, \
                      linewidth=2.0, label=label)
-    line0 = ax0.loglog(x/knorm, yfit, '--', \
-                     linewidth=2.0, label=label)    
+    
+    ax0.axvline(2*np.pi/(sim.lx*knorm/2.),color='black')
+    ax0.axvline(2*np.pi/(sim.r_avg*2.*knorm))
+    
+#    line1 = ax0.loglog(xnf, 2*yfit, '--', \
+#                     linewidth=2.0, label=label, color='red')  
+    
+#    line1 = ax0.loglog(xn, xn**-5./3., '--', \
+#                     linewidth=2.0, label=label) 
+       
+#    line0 = ax0.loglog(x[:cutp]/knorm, (x[:cutp]/knorm)**-8./3., '--', \
+#                     linewidth=2.0, label=label)        
     ### title
     
 #    ax0.set_title("$t/\\tau_{D}$ = " + "{0:.2f}".format(time/sim.tau_D) + \
@@ -109,7 +113,7 @@ def plot_data(x, y, sim, savebase, savefolder, save_eps):
     
     ### labels
         
-    ax0.set_xlabel("$q/q_{R}$", fontsize=40)
+    ax0.set_xlabel("$q/q_{2R}$", fontsize=40)
     ax0.set_ylabel("$E_{q}$", fontsize=40)
 
     ### limits

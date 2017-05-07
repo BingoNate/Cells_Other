@@ -13,6 +13,7 @@
 import sys
 sys.path.append('../Utility')
 
+import itertools
 import argparse
 import numpy as np
 import os
@@ -31,6 +32,35 @@ sns.set(style="white",context='paper',
             "xtick.major.size": 8, "ytick.major.size": 8,
             'grid.linestyle': '--'})   
 
+##############################################################################
+
+def th_msd(t, sim):
+    """ theoretical expression of MSD for a single active microswimmer"""
+        
+    return 4*sim.Dt*t + (2*sim.v0**2/sim.Dr**2)*(t*sim.Dr + np.exp(-t*sim.Dr) - 1)
+    
+##############################################################################
+    
+def list_from_cycle(cycle):
+    """ get the entire color cycle as a list without changing the state of the cycle"""
+    
+    ### populate a list of results
+    
+    first = next(cycle)
+    result = [first]
+    for current in cycle:
+        if current == first:
+            break
+        result.append(current)
+
+    ### reset iterator state
+        
+    for current in cycle:
+        if current == result[-1]:
+            break
+        
+    return result
+    
 ##############################################################################
      
 def plot_data(x, data, param_choice, sims, savebase, savefolder):
@@ -54,18 +84,27 @@ def plot_data(x, data, param_choice, sims, savebase, savefolder):
     subp = misc_tools.Subplots(fig, ax_len, ax_sep, ax_b, total_subplots_in_x) 
     ax0 = subp.addSubplot()
     
+    cnt = 0
     for p in data.keys():
         
-        sim = sims[p]       # simulation information
-        y = data[p]         # analysis data
+        sim = sims[p]           # simulation information
+        y = data[p]             # analysis data
+        yth = th_msd(x, sim)    # theoretical result for MSD
     
         label = r'$\epsilon=$' + str(sim.eps) + '$,f_{m}=$' + str(sim.fp) + \
             '$,\kappa_{A}=$' + str(sim.areak)
+        color = list_from_cycle(ax0._get_lines.prop_cycler)[cnt]['color']
         line0 = ax0.loglog(x/sim.tau_D, y/sim.r_avg**2, \
-                         linewidth=2.0, label=label)
+                         linewidth=2.0, label=label, color=color)
+#        line1 = ax0.loglog(x/sim.tau_D, yth/sim.r_avg**2, '--', \
+#                         linewidth=1.0, label='_nolegend_', color=color)
+        cnt += 1
         
     ax0.loglog(x/sim.tau_D, x/sim.tau_D, '--', linewidth=1.0, color='grey')
     ax0.loglog(x/sim.tau_D, (x/sim.tau_D)**2, '--', linewidth=1.0, color='grey')
+    
+#    ax0.axvline(1./sim.Dr/sim.tau_D, color='black', alpha=0.5)
+#    ax0.axhline(1.0, color='black', alpha=0.5)
     
     ### title
     
@@ -79,13 +118,15 @@ def plot_data(x, data, param_choice, sims, savebase, savefolder):
 
     ### limits
 
-    ax0.set_xlim((1e-1, 5e2))
+#    ax0.set_xlim((1e-1, 5e2))
     ax0.set_ylim((1e-1, 1e6))
+    ax0.set_ylim((1e-1, 1e10))
     
     ### ticks
     
-    ax0.xaxis.set_ticks([1e-1, 1e0, 1e1, 1e2, 5e2])
+#    ax0.xaxis.set_ticks([1e-1, 1e0, 1e1, 1e2, 5e2])
     ax0.yaxis.set_ticks([1e-2, 1e0, 1e2, 1e4, 1e6])
+    ax0.yaxis.set_ticks([1e-2, 1e0, 1e2, 1e4, 1e6, 1e8, 1e10])
     ax0.tick_params(axis='both', which='major', labelsize=30)
     
     ### legend
@@ -124,18 +165,18 @@ def main():
     ### make the parameter choice
     
     # motility
-#    fp = [1.0, 3.0, 10.0]
-#    eps = 1.0
-#    areak = 10.0
-#    param = fp
-#    param_choice = 'fp'
+    fp = [1.0, 5.0, 10.0]
+    eps = 1.0
+    areak = 10.0
+    param = fp
+    param_choice = 'fp'
     
     # compressibility
-    fp = 5.0
-    eps = 5.0
-    areak = [1.0, 10.0, 100.0]
-    param = areak
-    param_choice = 'areak'
+#    fp = 5.0
+#    eps = 5.0
+#    areak = [1.0, 10.0, 100.0]
+#    param = areak
+#    param_choice = 'areak'
     
     # adhesion
 #    fp = 3.0

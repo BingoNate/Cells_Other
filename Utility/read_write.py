@@ -16,7 +16,7 @@ import misc_tools
 
 ##############################################################################
     
-def read_h5_file(folder, bending='no'):
+def read_h5_file(folder, bending=False):
     """ read data from hdf5 file"""
     
     ### file path
@@ -71,7 +71,7 @@ def read_h5_file(folder, bending='no'):
 
 ##############################################################################
     
-def read_sim_info(folder, bending='no'):
+def read_sim_info(folder, bending=False):
     """ read simulation info from hdf5 file"""
     
     ### file path

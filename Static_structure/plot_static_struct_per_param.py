@@ -66,7 +66,7 @@ def plot_data(x, data, param_choice, sims, savebase, savefolder, save_eps):
     
     ### labels
         
-    ax0.set_xlabel("$q_{R}$", fontsize=40)
+    ax0.set_xlabel("$q/q_{R}$", fontsize=40)
     ax0.set_ylabel("$S_{q}$", fontsize=40)
 
     ### limits

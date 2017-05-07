@@ -35,44 +35,19 @@ sns.set(style="white",context='paper',
 
 ##########################################################################
 
-def up_power_law(x, a, b):
+def power_law(x, a, b):
     return a * x**b
 
 ##########################################################################
 
-def down_power_law(x, a, b):
-    return a * x**(-b)
+def five_thirds(x, a):
+    return a * x**(-5./3.)
 
-##########################################################################
-
-def exp_law(x, a, b):
-    return a * np.exp(-x/b)
-
-##########################################################################
-
-def power_law_with_exp_tail(x, a, b):
-    return (x**(-a))*np.exp(-x/b)
+##############################################################################
     
-##########################################################################
-
-def power_law_with_up_exp_tail(x, a, b):
-    return (x**(-a))*np.exp(x/b)    
-
-##########################################################################
-
-def mixed_power_law_with_exp_tail(x, a, b, c, d, f):
-    return (x**(-a))*np.exp(-x/b) + c*(x**(d))*np.exp(-x/f)
-
-##########################################################################
-    
-def mixed_power_law_with_exp_tail_2(x, a, b, c, d):
-    return (x**(b))*np.exp(-x/c) + a*(x**(-d))  
-
-##########################################################################
-
-def stretch_exp_law(x, a, b, c):
-    return a * np.exp(-(x/c)**b)
-    
+def thirds(x, a):
+    return a * x**(-3.)
+     
 ##############################################################################
      
 def plot_data(x, data, param_choice, sims, savebase, savefolder):
@@ -80,7 +55,7 @@ def plot_data(x, data, param_choice, sims, savebase, savefolder):
 
     ### set normalization parameter 
     
-    knorm = 2.*np.pi/sims[data.keys()[0]].r_avg
+    knorm = np.pi/sims[data.keys()[0]].r_avg
                           
     ### set general plot properties
 
@@ -100,35 +75,72 @@ def plot_data(x, data, param_choice, sims, savebase, savefolder):
     subp = misc_tools.Subplots(fig, ax_len, ax_sep, ax_b, total_subplots_in_x) 
     ax0 = subp.addSubplot()
     
+    xd = 2.*np.pi/((sims[data.keys()[0]].lx-4)/2.)
+    dc = np.argmin(np.abs(x-xd))
+    xu = 2.*np.pi/(2.*sims[data.keys()[0]].r_avg+4)
+    uc = np.argmin(np.abs(x-xu))
+    print dc, uc
+    dc = 54
+    uc = 260
+#    dc = 0
+#    uc = len(x)
+    print dc, uc
+
     for p in data.keys():
         
         sim = sims[p]       # simulation information
         y = data[p]         # analysis data
         
-        popt, pcov = curve_fit(up_power_law, x, y)
-        yfit = up_power_law(x, popt[0], popt[1])
+        ### normalization and appropriate data range selection
+        
+        xn = x[dc:uc]/knorm
+        yn = y[dc:uc]
+        
+        ### curve fitting
+        
+        popt, pcov = curve_fit(power_law, xn, yn)
+        yfit = power_law(xn, popt[0], popt[1])
         print "key = ", p,", fit param = ", popt[1]    
 
+        popt, pcov = curve_fit(five_thirds, xn, yn)
+        yf_five_thirds = five_thirds(xn, popt[0])
+
+        popt, pcov = curve_fit(thirds, xn, yn)
+        yf_thirds = thirds(xn, popt[0])
+        
         label = r'$\epsilon=$' + str(sim.eps) + '$,f_{m}=$' + str(sim.fp) + \
             '$,\kappa_{A}=$' + str(sim.areak)
-        line0 = ax0.loglog(x/knorm, y, \
+        
+        line0 = ax0.loglog(xn, yn, \
                          linewidth=2.0, label=label)
-        line1 = ax0.loglog(x/knorm, yfit, '--', \
-                         linewidth=1.0, label='_nolegend_')    
+#        ax0.loglog(xn, yfit, '--', \
+#                   linewidth=1.0, label='_nolegend_', color='black')
+        ax0.loglog(xn, yf_five_thirds, '--', \
+                   linewidth=1.0, label='_nolegend_', color='gray')        
+#        ax0.loglog(xn, yf_thirds, '--', \
+#                   linewidth=1.0, label='_nolegend_', color='gray')   
+        
+    ax0.axvline(2*np.pi/(sim.lx*knorm/2.))
+    ax0.axvline(2*np.pi/(sim.r_avg*2.*knorm))
+#    ax0.loglog(np.ones_like(yn)*2*np.pi/(sim.lx*knorm/2.), yn, '--', \
+#               label='_nolegend_', linewidth=1.0, color='k')
+#    ax0.loglog(np.ones_like(yn)*2*np.pi/(sim.r_avg*2.*knorm), yn, '--', \
+#               label='_nolegend_', linewidth=1.0, color='k')
+        
     ### labels
         
-    ax0.set_xlabel(r"$q/q_{R}$", fontsize=30)
+    ax0.set_xlabel(r"$q/q_{2R}$", fontsize=30)
     ax0.set_ylabel(r"$E(q)$", fontsize=30)
 
     ### limits
 
-#    ax0.set_xlim((0, 22))
+    ax0.set_xlim((0.03, 1.0))
 #    ax0.set_ylim((0.0, 1.9))
     
     ### ticks
     
 #    ax0.xaxis.set_ticks([0, 10, 20])
-#    ax0.yaxis.set_ticks([0, 0.5, 1.0, 1.5])
+    ax0.yaxis.set_ticks([1e-5, 1e-3, 1e-1, 1e1])
     ax0.tick_params(axis='both', which='major', labelsize=30)
     
     ### legend
@@ -167,11 +179,11 @@ def main():
     ### make the parameter choice
     
     # motility
-#    fp = [1.0, 3.0, 10.0]
-#    eps = 1.0
-#    areak = 10.0
-#    param = fp
-#    param_choice = 'fp'
+    fp = [1.0, 5.0, 10.0]
+    eps = 1.0
+    areak = 10.0
+    param = fp
+    param_choice = 'fp'
     
     # compressibility
 #    fp = 5.0
@@ -181,11 +193,11 @@ def main():
 #    param_choice = 'areak'
     
     # adhesion
-    fp = 3.0
-    areak = 10.0
-    eps = [0.05, 1.0, 10.0]
-    param = eps
-    param_choice = 'eps'
+#    fp = 3.0
+#    areak = 10.0
+#    eps = [0.05, 1.0, 10.0]
+#    param = eps
+#    param_choice = 'eps'
 
     data = {}       # carries the data per parameter set
     sims = {}       # carries the simulation information per parameter set

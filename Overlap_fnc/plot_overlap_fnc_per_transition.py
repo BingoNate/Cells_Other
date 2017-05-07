@@ -116,11 +116,11 @@ def main():
     ### make the parameter choice
     
     # motility
-#    fp = [1.0, 3.0, 10.0]
-#    eps = 1.0
-#    areak = 10.0
-#    param = fp
-#    param_choice = 'fp'
+    fp = [1.0, 5.0, 10.0]
+    eps = 1.0
+    areak = 10.0
+    param = fp
+    param_choice = 'fp'
     
     # compressibility
 #    fp = 5.0
@@ -130,11 +130,11 @@ def main():
 #    param_choice = 'areak'
     
     # adhesion
-    fp = 3.0
-    areak = 10.0
-    eps = [0.05, 1.0, 10.0]
-    param = eps
-    param_choice = 'eps'
+#    fp = 3.0
+#    areak = 10.0
+#    eps = [0.05, 1.0, 10.0]
+#    param = eps
+#    param_choice = 'eps'
 
     data = {}       # carries the data per parameter set
     sims = {}       # carries the simulation information per parameter set

@@ -65,24 +65,34 @@ void calc_dynamical_matrix (MatrixXd &Dab, double **x, double **y,
 
   for (int step = 0; step < nsteps; step++) {
     
+    int i_even = 0;
+    int i_odd = 0;
+    
     for (int i = 0; i < 2*ncells; i++) {
       
       double row = 0.;
       if (i % 2 == 0) {
-        row = x[step][i] - xavg[i];
+        row = x[step][i_even] - xavg[i_even];
+	i_even++;
       }
       else {
-        row = y[step][i] - yavg[i];
+        row = y[step][i_odd] - yavg[i_odd];
+	i_odd++;
       }
+      
+      int j_even = 0;
+      int j_odd = 0;
       
       for (int j = 0; j < 2*ncells; j++) {
 	
         double column = 0.;
         if (j % 2 == 0) {
-          column = x[step][j] - xavg[j];
+          column = x[step][j_even] - xavg[j_even];
+	  j_even++;
         }
         else {
-          column = y[step][j] - yavg[j];
+          column = y[step][j_odd] - yavg[j_odd];
+	  j_odd++;
         }
         
         Dab(i, j) += row*column;

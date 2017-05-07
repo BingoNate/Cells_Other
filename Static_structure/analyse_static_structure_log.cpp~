@@ -19,30 +19,23 @@ using namespace std;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double compute_static_structure (double **x, double **y, double *S, double *kvec, int Nmax, int natoms, int nsteps, double l) {
+double compute_static_structure (double **x, double **y, double *S, double *kvec, 
+				 int Nmax, int natoms, int nsteps, double l,
+				 double kmax, double kmin, int njump, double delk) {
   /* calculate static structure per timestep with a running average */
 
   // set preliminary data
   
-  double delk = 2*pi/l;
-  double lamda_min = 5.; 
-  double lamda_max = l/2.;
-  double kmax = 2*pi/lamda_min;
-  double kmin = 2*pi/lamda_max;
   int nks = 24;
-   
-  int njump = 2;
-  kmax = log(kmax);
-  kmin = log(kmin);  
   double wbin = (kmax-kmin)/Nmax;
 
-  cout << "delta k = " << delk << "\n" << "wbin = " << wbin << "\n" << "kmin = " << exp(kmin) << "\n" << "kmax = " << exp(kmax) << "\n" << "Nmax = " << Nmax << "\n" << endl;
-//   cout << "delta k = " << delk << "\n" << "wbin = " << wbin << "\n" << "kmin = " << kmin << "\n" << "kmax = " << kmax << "\n" << "Nmax = " << Nmax << "\n" << endl;
+//   cout << "delta k = " << delk << "\n" << "wbin = " << wbin << "\n" << "kmin = " << exp(kmin) << "\n" << "kmax = " << exp(kmax) << "\n" << "Nmax = " << Nmax << "\n" << endl;
+  cout << "delta k = " << delk << "\n" << "wbin = " << wbin << "\n" << "kmin = " << kmin << "\n" << "kmax = " << kmax << "\n" << "Nmax = " << Nmax << "\n" << endl;
   
   // populate log-spaced absolute value of the k vectors
   
   for (int j = 0; j < Nmax; j++) kvec[j] = kmin + j*wbin;
-  for (int j = 0; j < Nmax; j++) kvec[j] = exp(kvec[j]);
+/*  for (int j = 0; j < Nmax; j++) kvec[j] = exp(kvec[j]);*/
   
   // populate circular orientation of the k vector 
   
@@ -64,7 +57,7 @@ double compute_static_structure (double **x, double **y, double *S, double *kvec
 	  double costerm = 0.;
 	  double sinterm = 0.;
 
-	  omp_set_num_threads(4);
+	  omp_set_num_threads(16);
 	  #pragma omp parallel for reduction(+:costerm,sinterm)
 	  for (int j = 0; j < natoms; j++) {
 	    double dotp = kx*x[step][j] + ky*y[step][j];
@@ -150,8 +143,19 @@ int main (int argc, char *argv[]) {
   get_img_pos(x, y, nsteps, ncells, lx, ly);
    
   // allocate the arrays and set preliminary information
-  
-  int Nmax = 100;
+
+  double delk = 2*pi/lx;
+  cout << delk << endl;
+  double lamda_min = 3.; 
+  double lamda_max = lx;
+  double kmax = 2*pi/lamda_min;
+  double kmin = 2*pi/lamda_max;
+  int nks = 24;
+  int njump = 10;
+/*  kmax = log(kmax);
+  kmin = log(kmin);*/  
+  int Nmax = static_cast<int>((kmax-kmin)/delk);
+  double wbin = (kmax-kmin)/Nmax;
   double *kvec = new double[Nmax];
   double *S = new double[Nmax];
   for (int j = 0; j < Nmax; j++) {
@@ -160,7 +164,7 @@ int main (int argc, char *argv[]) {
   
   // calculate the static structure factor
   
-  double ndata = compute_static_structure(x, y, S, kvec, Nmax, ncells, nsteps, lx);  
+  double ndata = compute_static_structure(x, y, S, kvec, Nmax, ncells, nsteps, lx, kmax, kmin, njump, delk);  
   
   // write the computed data
   

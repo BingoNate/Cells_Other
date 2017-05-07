@@ -1,12 +1,12 @@
 
-""" Plot energy spectrum per transition 
+""" Plot 4 point susceptibility per transition 
     in the phase diagram"""
 
 ### example command line arguments: 
 ###    -e=1.0 -f=0.5
 ###    -fl=/local/duman/SIMULATIONS/Cells_in_LAMMPS/density_0.8/ 
 ###         -sb=/usr/users/iff_th2/duman/Cells_in_LAMMPS/PLOTS/
-###             -sf=Static_struct
+###             -sf=4_pt_susceptibility
 
 ##############################################################################
 
@@ -36,10 +36,6 @@ sns.set(style="white",context='paper',
 def plot_data(x, data, param_choice, sims, savebase, savefolder):
     """ plot the data as a function of the chosen parameter"""
 
-    ### set normalization parameter 
-    
-    knorm = 2.*np.pi/sims[data.keys()[0]].r_avg
-                          
     ### set general plot properties
 
     #downlim = -1
@@ -65,23 +61,23 @@ def plot_data(x, data, param_choice, sims, savebase, savefolder):
     
         label = r'$\epsilon=$' + str(sim.eps) + '$,f_{m}=$' + str(sim.fp) + \
             '$,\kappa_{A}=$' + str(sim.areak)
-        line0 = ax0.plot(x/knorm, y, \
+        line0 = ax0.loglog(x/sim.tau_D, y, \
                          linewidth=2.0, label=label)
     
     ### labels
         
-    ax0.set_xlabel(r"$q/q_{R}$", fontsize=30)
-    ax0.set_ylabel(r"$S(q)$", fontsize=30)
+    ax0.set_xlabel(r"$\Delta t/\tau_{D}$", fontsize=30)
+    ax0.set_ylabel(r"$\xi_{4}(\Delta t)$", fontsize=30)
 
     ### limits
 
-#    ax0.set_xlim((0, 22))
-#    ax0.set_ylim((0.0, 1.9))
+    #ax0.set_xlim((1e-1, 5e2))
+    #ax0.set_ylim((-0.1, 1.0))
     
     ### ticks
     
-#    ax0.xaxis.set_ticks([0, 10, 20])
-#    ax0.yaxis.set_ticks([0, 0.5, 1.0, 1.5])
+    #ax0.xaxis.set_ticks([0, 100, 200, 300])
+    #ax0.yaxis.set_ticks([1e-6, 1e-4, 1e-2, 1e0])
     ax0.tick_params(axis='both', which='major', labelsize=30)
     
     ### legend
@@ -108,23 +104,23 @@ def main():
 
     ### get the folder structure
 
-    analysistype = "Static_struct"
+    analysistype = "4_pt_susceptibility"
     analysisdatabase = '/usr/users/iff_th2/duman/Cells_in_LAMMPS/DATA/' 
     analysisdatabase += analysistype + '/' 
     
     datafolderbase = '/local/duman/SIMULATIONS/Cells_in_LAMMPS/density_0.8/'
     
     savebase = "/usr/users/iff_th2/duman/Cells_in_LAMMPS/PLOTS/"
-    savefolder = "Static_struct"
+    savefolder = "4_pt_susceptibility"
     
     ### make the parameter choice
     
     # motility
-#    fp = [1.0, 3.0, 10.0]
-#    eps = 1.0
-#    areak = 10.0
-#    param = fp
-#    param_choice = 'fp'
+    fp = [1.0, 5.0, 10.0]
+    eps = 1.0
+    areak = 10.0
+    param = fp
+    param_choice = 'fp'
     
     # compressibility
 #    fp = 5.0
@@ -134,11 +130,11 @@ def main():
 #    param_choice = 'areak'
     
     # adhesion
-    fp = 3.0
-    areak = 10.0
-    eps = [0.05, 1.0, 10.0]
-    param = eps
-    param_choice = 'eps'
+#    fp = 3.0
+#    areak = 10.0
+#    eps = [0.05, 1.0, 10.0]
+#    param = eps
+#    param_choice = 'eps'
 
     data = {}       # carries the data per parameter set
     sims = {}       # carries the simulation information per parameter set

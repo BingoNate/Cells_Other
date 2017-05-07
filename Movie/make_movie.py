@@ -52,7 +52,7 @@ def gen_video(folder, savefolder):
     
     os.system('mkdir -p ' + savefolder)
     v_name = savefolder + 'detailed.mp4'
-    
+
     # -r : framerate(fps), -s is resoluation
     # -i is input %04 is to pad with zeros until 4th string pic0001, pic0002, pic0020, ...
     # -crf is quality, the lower the better
@@ -62,7 +62,10 @@ def gen_video(folder, savefolder):
 #    subprocess.call(['ffmpeg','-r','40','-f','image2','-s','720:720','-i',folder+'frame-%05d.png','-y',
 #                     '-vcodec','libx264','-crf','25','-pix_fmt','yuv420p','-vf','scale=720:-1',v_name])
     subprocess.call(['ffmpeg','-f','image2','-s','720:720','-i',folder+'frame-%05d.png','-y',
-                     '-vcodec','libx264','-crf','25','-pix_fmt','yuv420p','-vf','scale=720:-1',v_name])                     
+                     '-vcodec','libx264','-crf','25','-pix_fmt','yuv420p','-vf','scale=720:-1',v_name])  
+#    subprocess.call(['ffmpeg','-f','image2','-s','720:720','-i',folder+'frame-%05d.png','-y',
+#                     '-vcodec','libx264','-crf','25','-pix_fmt','yuv420p','-vf','scale=720:trunc(ow/a/2)*2',v_name])  
+
     return
 
 ##############################################################################

@@ -199,7 +199,7 @@ def plot_frames(data, beads, cells, sim, ti, tf, savebase, save_eps):
     comx = deque()
     comy = deque()
     ntrace = 6
-    delta = 4
+    delta = 3
 
     ### normalize central box positions for plotting purposes
     
@@ -486,8 +486,8 @@ def plot_vorticity(data, beads, cells, sim, ti, tf, savebase, save_eps):
     
     comx = deque()
     comy = deque()
-    ntrace = 6
-    delta = 4
+    ntrace = 5
+    delta = 5
 
     ### normalize central box positions for plotting purposes
     

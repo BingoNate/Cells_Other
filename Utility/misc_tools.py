@@ -120,15 +120,18 @@ class Simulation:
         
         ### define more simulation parameters
         
-        self.kT = 1
-        self.gamma_n = 1
+        self.kT = 1.
+        self.gamma_n = 1.
         self.N_avg = np.average(self.nbpc)
         self.r_avg = self.bl*self.N_avg/2/np.pi
-        self.tau_D = self.r_avg**2 * self.gamma_n * self.N_avg / 4. / self.kT
+        self.Dt = self.kT/(self.gamma_n*self.N_avg)
         if self.fp == 0.:
             self.tau_A = 0.0
         else:
             self.tau_A = 2 * self.r_avg * self.gamma_n / self.fp
+        self.Dr = 0.001
+        self.tau_D = self.r_avg**2/4./self.Dt
+        self.v0 = self.fp/self.gamma_n
         
         return
         

@@ -1,12 +1,12 @@
 
-""" Plot energy spectrum per transition 
+""" Plot density of modes per transition 
     in the phase diagram"""
 
 ### example command line arguments: 
 ###    -e=1.0 -f=0.5
 ###    -fl=/local/duman/SIMULATIONS/Cells_in_LAMMPS/density_0.8/ 
 ###         -sb=/usr/users/iff_th2/duman/Cells_in_LAMMPS/PLOTS/
-###             -sf=Static_struct
+###             -sf=Density_of_modes
 
 ##############################################################################
 
@@ -22,6 +22,7 @@ import matplotlib.pyplot as plt
 import read_write
 import misc_tools 
 import seaborn as sns
+from scipy.optimize import curve_fit
 from scipy.stats.kde import gaussian_kde
 #sns.set()
 sns.set(style="white",context='paper',
@@ -30,15 +31,25 @@ sns.set(style="white",context='paper',
             'font.family': 'sans',"figure.dpi":300,
             "xtick.major.size": 8, "ytick.major.size": 8,
             'grid.linestyle': '--'})   
-
-##############################################################################
      
+##############################################################################
+   
+def convert_to_modes(x, y, sim):
+    """ convert to modes from the eigenvalues of the dynamical matrix"""
+    
+    y[y<0] = min(abs(y))
+    y = np.sqrt(1./y)
+    
+    return y
+    
+##############################################################################   
+ 
 def plot_data(x, data, param_choice, sims, savebase, savefolder):
     """ plot the data as a function of the chosen parameter"""
 
     ### set normalization parameter 
     
-    knorm = 2.*np.pi/sims[data.keys()[0]].r_avg
+    #knorm = np.pi/sims[data.keys()[0]].r_avg
                           
     ### set general plot properties
 
@@ -62,16 +73,31 @@ def plot_data(x, data, param_choice, sims, savebase, savefolder):
         
         sim = sims[p]       # simulation information
         y = data[p]         # analysis data
-    
+        
+        ### normalisation and appropriate data range selection
+        
+        print y
+        histy, edges = np.histogram(y, bins=np.logspace(np.log10(min(y)), np.log10(max(y))))
+        print edges, histy
+        
+        ### curve fitting
+        
+#        popt, pcov = curve_fit(power_law, xn, yn)
+#        yfit = power_law(xn, popt[0], popt[1])
+#        print "key = ", p,", fit param = ", popt[1]    
+        
         label = r'$\epsilon=$' + str(sim.eps) + '$,f_{m}=$' + str(sim.fp) + \
             '$,\kappa_{A}=$' + str(sim.areak)
-        line0 = ax0.plot(x/knorm, y, \
+        
+        line0 = ax0.plot(edges[:-1], histy, \
                          linewidth=2.0, label=label)
-    
+        
+        #ax0.set_xscale('log')
+                
     ### labels
         
-    ax0.set_xlabel(r"$q/q_{R}$", fontsize=30)
-    ax0.set_ylabel(r"$S(q)$", fontsize=30)
+    ax0.set_xlabel(r"$q$", fontsize=30)
+    ax0.set_ylabel(r"$D(q)$", fontsize=30)
 
     ### limits
 
@@ -108,23 +134,23 @@ def main():
 
     ### get the folder structure
 
-    analysistype = "Static_struct"
+    analysistype = "Density_of_modes"
     analysisdatabase = '/usr/users/iff_th2/duman/Cells_in_LAMMPS/DATA/' 
     analysisdatabase += analysistype + '/' 
     
     datafolderbase = '/local/duman/SIMULATIONS/Cells_in_LAMMPS/density_0.8/'
     
     savebase = "/usr/users/iff_th2/duman/Cells_in_LAMMPS/PLOTS/"
-    savefolder = "Static_struct"
+    savefolder = "Density_of_modes"
     
     ### make the parameter choice
     
     # motility
-#    fp = [1.0, 3.0, 10.0]
-#    eps = 1.0
-#    areak = 10.0
-#    param = fp
-#    param_choice = 'fp'
+    fp = [1.0, 3.0, 10.0]
+    eps = 1.0
+    areak = 10.0
+    param = fp
+    param_choice = 'fp'
     
     # compressibility
 #    fp = 5.0
@@ -134,11 +160,11 @@ def main():
 #    param_choice = 'areak'
     
     # adhesion
-    fp = 3.0
-    areak = 10.0
-    eps = [0.05, 1.0, 10.0]
-    param = eps
-    param_choice = 'eps'
+#    fp = 3.0
+#    areak = 10.0
+#    eps = [0.05, 1.0, 10.0]
+#    param = eps
+#    param_choice = 'eps'
 
     data = {}       # carries the data per parameter set
     sims = {}       # carries the simulation information per parameter set
@@ -157,6 +183,7 @@ def main():
             
         sims[p] = read_write.read_sim_info(datafolder)
         x, y = read_write.read_2d_analysis_data(analysisfile)
+        y = convert_to_modes(x, y, sims[p])
         data[p] = y
         
     ### plot the data as a function of the parameter
