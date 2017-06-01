@@ -27,6 +27,7 @@ def read_contextual_info():
     parser.add_argument("-e", "--eps", type=float, help="Strength of LJ interaction")
     parser.add_argument("-f", "--fp", type=float, help="Propulsion force")
     parser.add_argument("-a", "--areak", type=float, help="Area constraint strength")
+    parser.add_argument("-k", "--kappa", type=float, help="Bending rigidity")    
     parser.add_argument("-dt", "--timestep", type=float, help="Timestep of the simulation")
     parser.add_argument("-ns", "--nsamp", type=int, help="Sampling rate of data")
     parser.add_argument("-b", "--bl", type=float, help="Bond length of the simulation")    
@@ -37,7 +38,7 @@ def read_contextual_info():
     ### generate folder path
     
     folder = args.folder + 'density_' + str(args.density) + '/eps_' + str(args.eps) + \
-        '/fp_' + str(args.fp) + '/areak_' + str(args.areak)
+        '/fp_' + str(args.fp) + '/areak_' + str(args.areak) + '/kappa_' + str(args.kappa)
     fpath = folder + '/out1.dump'
     assert os.path.exists(fpath), "\nOUT1.DUMP DOES NOT EXIST FOR: " + folder 
 
@@ -152,7 +153,7 @@ def read_pos_from_dump_files(folder, nbeads, ncells, nsteps, T, lx, ly):
     
     current_file_number = 0
     x = np.zeros((nsteps, 2, nbeads), dtype=np.float32)
-    d = np.zeros((nsteps, ncells), dtype=np.int32)    
+    d = np.zeros((nsteps, ncells), dtype=np.float32)    
     mid = np.zeros((nbeads), dtype=np.int32)
     tstep_cnt = -1
     checked = []
@@ -216,6 +217,7 @@ def write_h5_file(folder, x, d, mid, com, nbeads, nsteps, nbpc, lx, ly, args):
     param.create_dataset('rho', data=args.density)
     param.create_dataset('fp', data=args.fp)
     param.create_dataset('areak', data=args.areak)
+    param.create_dataset('kappa', data=args.kappa)
     param.create_dataset('bl', data=args.bl)
     param.create_dataset('sigma', data=args.sigma)
     
