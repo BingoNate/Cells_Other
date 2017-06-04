@@ -11,6 +11,7 @@ import argparse
 import numpy as np
 import os
 import h5py
+import subprocess
 
 ##############################################################################
 
@@ -32,7 +33,7 @@ def read_contextual_info():
     parser.add_argument("-ns", "--nsamp", type=int, help="Sampling rate of data")
     parser.add_argument("-b", "--bl", type=float, help="Bond length of the simulation")    
     parser.add_argument("-s", "--sigma", type=float, help="Lennard Jones length")     
-    parser.add_argument("-nc", "--ncells", type=int, help="Number of cells")         
+    parser.add_argument("-nc", "--ncells", type=int, help="Number of cells")  
     args = parser.parse_args()
     
     ### generate folder path
@@ -73,8 +74,8 @@ def read_contextual_info():
 
 ##############################################################################
     
-def get_number_of_snaps(f, nbeads):
-    """ determine the number of snapshots in the file"""
+def get_number_of_snaps_legacy(f, nbeads):
+    """ determine the number of snapshots in the file --old version"""
     
     os.system('wc -l ' + f + ' > tmp.txt')
     ifile = open('tmp.txt')
@@ -84,6 +85,19 @@ def get_number_of_snaps(f, nbeads):
     nsnaps = nlines/(nbeads+9)
     ifile.close()
     os.system('rm tmp.txt')
+    
+    return nsnaps
+
+##############################################################################
+    
+def get_number_of_snaps(f, nbeads):
+    """ determine the number of snapshots in the file"""
+    
+    nlines = int(subprocess.check_output(['wc', '-l', f]))
+    print 'subprocess worked'
+    print 'nlines = ', str(nlines)
+    nsnaps = nlines/(nbeads+9)
+
     
     return nsnaps
 
