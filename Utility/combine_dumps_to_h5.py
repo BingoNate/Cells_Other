@@ -74,7 +74,7 @@ def read_contextual_info():
 
 ##############################################################################
     
-def get_number_of_snaps_legacy(f, nbeads):
+def get_number_of_snaps(f, nbeads):
     """ determine the number of snapshots in the file --old version"""
     
     os.system('wc -l ' + f + ' > tmp.txt')
@@ -90,14 +90,15 @@ def get_number_of_snaps_legacy(f, nbeads):
 
 ##############################################################################
     
-def get_number_of_snaps(f, nbeads):
+def get_number_of_snaps_alternative_trial(f, nbeads):
     """ determine the number of snapshots in the file"""
+    
+    ### THIS DOES NOT WORK YET!!
     
     nlines = int(subprocess.check_output(['wc', '-l', f]))
     print 'subprocess worked'
     print 'nlines = ', str(nlines)
     nsnaps = nlines/(nbeads+9)
-
     
     return nsnaps
 
