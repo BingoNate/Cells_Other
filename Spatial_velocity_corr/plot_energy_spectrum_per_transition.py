@@ -43,6 +43,12 @@ def power_law(x, a, b):
 def five_thirds(x, a):
     return a * x**(-5./3.)
 
+    
+##########################################################################
+
+def eight_thirds(x, a):
+    return a * x**(-8./3.)
+    
 ##############################################################################
     
 def thirds(x, a):
@@ -94,7 +100,7 @@ def plot_data(x, data, param_choice, sims, savebase, savefolder):
         ### normalization and appropriate data range selection
         
         xn = x[dc:uc]/knorm
-        yn = y[dc:uc]
+        yn = y[dc:uc]/x[dc:uc]
         
         ### curve fitting
         

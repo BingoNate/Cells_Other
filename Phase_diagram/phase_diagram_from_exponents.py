@@ -75,7 +75,7 @@ class Phase:
 
 ##############################################################################
 
-def plot_slices(phases, slicer):
+def plot_slices(phases, slicer, value):
     """ plot phase diagram by slices in 2D"""
 
     npoints = len(phases)       # total number of data points
@@ -107,8 +107,12 @@ def plot_slices(phases, slicer):
  
     savefolder = "/usr/users/iff_th2/duman/Cells_in_LAMMPS/PLOTS/PHASE_DIAGRAM/"
     os.system("mkdir -p " + savefolder)
-    sfile = savefolder + "phase_diagram_from_exponents_per_AREAK_" + \
-        str(slicer)
+    if slicer == "areak":
+        sfile = savefolder + "phase_diagram_from_exponents_per_AREAK_" + \
+            str(value)
+    else:
+        sfile = savefolder + "phase_diagram_from_exponents_per_KAPPA_" + \
+            str(value)            
     fig = plt.figure()
     ax_len = 0.9                          # Length of one subplot square box
     ax_b = 0.0                            # Beginning/offset of the subplot in the box
@@ -137,7 +141,10 @@ def plot_slices(phases, slicer):
     cax = plt.colorbar(line0, ax=ax)
     cax.ax.set_title(r'$\alpha$', fontsize=30)
     
-    ax.set_title(r'$\kappa_{A} = $' + str(slicer), fontsize=30)
+    if slicer == "areak":
+        ax.set_title(r'$\kappa_{A} = $' + str(slicer), fontsize=30)
+    else:
+        ax.set_title(r'$\kappa_{B} = $' + str(slicer), fontsize=30)
         
     ax.set_xscale('log')
     ax.set_yscale('log')
@@ -160,7 +167,7 @@ def plot_slices(phases, slicer):
                 
 ##############################################################################
                 
-def load_data(filepath, totalData):
+def load_data(filepath, totalData, slicer):
     """ load the data into a dictionary"""
 
     fl = open(filepath, 'r')
@@ -169,8 +176,17 @@ def load_data(filepath, totalData):
     for j in xrange(totalData):
         
         line = fl.readline()
-        e, f, a, x = line.split()
-        key = (float(e), float(f), float(a))
+        e, f, a, k, x = line.split()
+        if slicer == 'areak':
+            if k == 100.0:
+                key = (float(e), float(f), float(a))
+            else:
+                continue
+        else:
+            if a == 10.0:
+                key = (float(e), float(f), float(k))    
+            else:
+                continue
         data[key] = float(x)
         
     fl.close()
@@ -179,14 +195,14 @@ def load_data(filepath, totalData):
 
 ##############################################################################
     
-def construct_phase_diagram(data, idx, threshold):
+def construct_phase_diagram(data, idx_key, idx, threshold):
     """ build the phase diagram slicing by idx"""
 
     phases = []
     for e, f, a in data.keys():
         if a == idx:
             phase = Phase(e, f, a, data[(e,f,a)], threshold)
-            phases.append(phase)
+            phases.append(phase) 
                 
     return phases
               
@@ -198,31 +214,41 @@ def main():
     
     parser = argparse.ArgumentParser()
     parser.add_argument("-s", "--sliceby", type=float, \
-                        help="Slice by argument in areak")
+                        help="Slice by argument -areak or kappa-")
+    parser.add_argument("-v", "--value", type=float, \
+                        help="Slice by value in areak or kappa")
     parser.add_argument("-t", "--threshold", type=float, \
                         help="Threshold value of correlation length to distinguish the phases")
     args = parser.parse_args()
     
     ### index the phase space
 
-    eps = [0.05, 0.5, 1.0, 5.0, 10.0, 20.0]
-    fp = [0.0, 0.5, 1.0, 3.0, 5.0, 10.0]
-    areak = [1.0, 10.0, 100.0]
-    totalData = len(eps)*len(fp)*len(areak)
+    if args.sliceby == "areak":
+        eps = [0.05, 0.5, 1.0, 5.0, 10.0, 20.0]
+        fp = [0.0, 0.5, 1.0, 3.0, 5.0, 10.0]
+        areak = [1.0, 10.0, 100.0]
+        kappa = [100.0]
+        totalData = len(eps)*len(fp)*len(areak)
+    else:
+        eps = [0.05, 1.0, 5.0, 20.0]
+        fp = [0.5, 1.0, 5.0]
+        areak = [10.0]
+        kappa = [1.0, 10.0, 100.0, 1000.0]
+        totalData = len(eps)*len(fp)*len(kappa)
     
     ### load the data into a dictionary
 
     filepath = \
         '/usr/users/iff_th2/duman/Cells_in_LAMMPS/DATA/PHASE_DIAGRAM/PHASE_DIAGRAM.txt'    
-    data = load_data(filepath, totalData)
+    data = load_data(filepath, totalData, args.sliceby)
 
     ### build the phase diagram
 
-    phases = construct_phase_diagram(data, args.sliceby, args.threshold)
+    phases = construct_phase_diagram(data, args.sliceby, args.value, args.threshold)
     
     ### plot the phase diagram
     
-    plot_slices(phases, args.sliceby)
+    plot_slices(phases, args.sliceby, args.value)
     
     
 ##############################################################################

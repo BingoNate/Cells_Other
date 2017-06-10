@@ -21,7 +21,7 @@ void read_integer_array (std::string filename, std::string path_in_file, int *bu
 void read_double_array (std::string filename, std::string path_in_file, double *buffer);
   
 /* read general simulation data in hdf5 format */
-void read_sim_data (std::string filename, int &nsteps, int &nbeads, int &nsamp, int &ncells, double &lx, double &ly, double &dt, double &eps, double &rho, double &fp, double &areak, double &bl, double &sigma);
+void read_sim_data (std::string filename, int &nsteps, int &nbeads, int &nsamp, int &ncells, double &lx, double &ly, double &dt, double &eps, double &rho, double &fp, double &areak, double &kappa, double &bl, double &sigma);
 
 /* read the position data at a single timestep */  
 void read_single_pos_data(int step, hid_t dataset, hid_t dataspace, double **x, double **y, int natoms);

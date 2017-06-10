@@ -60,7 +60,7 @@ def plot_data(x, data, param_choice, sims, savebase, savefolder):
         y = data[p]         # analysis data
     
         label = r'$\epsilon=$' + str(sim.eps) + '$,f_{m}=$' + str(sim.fp) + \
-            '$,\kappa_{A}=$' + str(sim.areak)
+            '$,\kappa_{A}=$' + str(sim.areak) + '$,\kappa_{B}=$' + str(sim.kappa)
         print y
         x[5] = 0.0
         y[5] = 1.0
@@ -85,7 +85,7 @@ def plot_data(x, data, param_choice, sims, savebase, savefolder):
     
     ### legend
 
-    ax0.legend(bbox_to_anchor=(0.35, 0.,0.65, 1.), loc=2, borderaxespad=0., \
+    ax0.legend(bbox_to_anchor=(0.15, 0.,0.65, 1.), loc=2, borderaxespad=0., \
         prop={'size': 20}, mode="expand", frameon=False)
     
     ### save
@@ -119,11 +119,11 @@ def main():
     ### make the parameter choice
     
     # motility
-    fp = [1.0, 5.0, 10.0]
-    eps = 1.0
-    areak = 10.0
-    param = fp
-    param_choice = 'fp'
+#    fp = [1.0, 5.0, 10.0]
+#    eps = 1.0
+#    areak = 10.0
+#    param = fp
+#    param_choice = 'fp'
     
     # compressibility
 #    fp = 5.0
@@ -139,6 +139,14 @@ def main():
 #    param = eps
 #    param_choice = 'eps'
 
+    # deformability
+    fp = 5.0
+    eps = 1.0
+    areak = 10.0
+    kappa = [1.0, 10.0, 100.0, 1000.0]
+    param = kappa
+    param_choice = 'kappa'
+    
     data = {}       # carries the data per parameter set
     sims = {}       # carries the simulation information per parameter set
 
@@ -154,7 +162,17 @@ def main():
             datafolder, analysisfile = read_write.gen_folders(eps, p, areak, savefolder, 
                                                    datafolderbase, analysisdatabase)  
             
-        sims[p] = read_write.read_sim_info(datafolder)
+        elif param_choice == 'kappa':            
+            datafolder, analysisfile = read_write.gen_folders(eps, fp, areak, savefolder, 
+                                                   datafolderbase, analysisdatabase, p)  
+            
+        if param_choice == 'kappa':
+            if p != 100.0:
+                sims[p] = read_write.read_sim_info(datafolder, True)
+            else:
+                sims[p] = read_write.read_sim_info(datafolder, False)            
+        else:
+            sims[p] = read_write.read_sim_info(datafolder, False)    
         x, y = read_write.read_2d_analysis_data(analysisfile)
         data[p] = y
         

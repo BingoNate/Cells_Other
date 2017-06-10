@@ -92,7 +92,7 @@ def plot_data(x, data, param_choice, sims, savebase, savefolder):
         yth = th_msd(x, sim)    # theoretical result for MSD
     
         label = r'$\epsilon=$' + str(sim.eps) + '$,f_{m}=$' + str(sim.fp) + \
-            '$,\kappa_{A}=$' + str(sim.areak)
+            '$,\kappa_{A}=$' + str(sim.areak) + '$,\kappa_{B}=$' + str(sim.kappa)
         color = list_from_cycle(ax0._get_lines.prop_cycler)[cnt]['color']
         line0 = ax0.loglog(x/sim.tau_D, y/sim.r_avg**2, \
                          linewidth=2.0, label=label, color=color)
@@ -165,11 +165,11 @@ def main():
     ### make the parameter choice
     
     # motility
-    fp = [1.0, 5.0, 10.0]
-    eps = 1.0
-    areak = 10.0
-    param = fp
-    param_choice = 'fp'
+#    fp = [1.0, 5.0, 10.0]
+#    eps = 1.0
+#    areak = 10.0
+#    param = fp
+#    param_choice = 'fp'
     
     # compressibility
 #    fp = 5.0
@@ -185,6 +185,14 @@ def main():
 #    param = eps
 #    param_choice = 'eps'
 
+    # deformability
+    fp = 5.0
+    eps = 1.0
+    areak = 10.0
+    kappa = [1.0, 10.0, 100.0, 1000.0]
+    param = kappa
+    param_choice = 'kappa'    
+
     data = {}       # carries the data per parameter set
     sims = {}       # carries the simulation information per parameter set
 
@@ -199,8 +207,18 @@ def main():
         elif param_choice == 'fp':            
             datafolder, analysisfile = read_write.gen_folders(eps, p, areak, savefolder, 
                                                    datafolderbase, analysisdatabase)  
+
+        elif param_choice == 'kappa':            
+            datafolder, analysisfile = read_write.gen_folders(eps, fp, areak, savefolder, 
+                                                   datafolderbase, analysisdatabase, p)  
             
-        sims[p] = read_write.read_sim_info(datafolder)
+        if param_choice == 'kappa':
+            if p != 100.0:
+                sims[p] = read_write.read_sim_info(datafolder, True)
+            else:
+                sims[p] = read_write.read_sim_info(datafolder, False)            
+        else:
+            sims[p] = read_write.read_sim_info(datafolder, False)            
         x, y = read_write.read_2d_analysis_data(analysisfile)
         data[p] = y
         

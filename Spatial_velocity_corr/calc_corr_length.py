@@ -42,6 +42,8 @@ def main():
                         help="Propulsion force")
     parser.add_argument("-a", "--areak", type=float, \
                         help="Area constraint potential strength")
+    parser.add_argument("-k", "--kappa", type=float, \
+                        help="Bending rigidity")    
     parser.add_argument("-fl", "--folder", nargs="?", \
                         const='/local/duman/SIMULATIONS/Cells_in_LAMMPS/density_0.8/', \
                         help="Folder containing data, as in /local/duman/SIMULATIONS/Cells_in_LAMMPS/density_0.8/")    
@@ -58,13 +60,17 @@ def main():
     ### read the data and general information from the folder
     
     print "Calculating correlation length for the following parameters : ", \
-        args.eps, ", ", args.fp, ", ", args.areak
+        args.eps, ", ", args.fp, ", ", args.areak, ", ", args.kappa
         
     ### get the simulation data
     
     folder = args.folder + "eps_" + str(args.eps) + \
-        "/fp_" + str(args.fp) + "/areak_" + str(args.areak) + "/"
-    sim = read_write.read_sim_info(folder)
+        "/fp_" + str(args.fp) + "/areak_" + str(args.areak) + \
+        "/kappa_" + str(args.kappa) + "/"
+    if args.kappa == 100.0:
+        sim = read_write.read_sim_info(folder, False)
+    else:
+        sim = read_write.read_sim_info(folder, True)
     
     ### calculate correlation length
     
@@ -72,7 +78,8 @@ def main():
     aname = "Sp_velocity_corr_subt"
     corr_len_folder += aname
     corr_len_file = corr_len_folder + "/" + aname + "_eps_" + str(args.eps) + \
-        "_fp_" + str(args.fp) + "_areak_" + str(args.areak) + ".txt"
+        "_fp_" + str(args.fp) + "_areak_" + str(args.areak) + \
+        "_kappa_" + str(args.kappa) + ".txt"
     x, y = read_write.read_2d_analysis_data(corr_len_file)
     corr_len = calc_corr_len(y, sim)
     
@@ -81,7 +88,8 @@ def main():
     savebase = args.savebase + args.savefolder + "/"
     os.system("mkdir -p " + savebase)
     savefile = savebase + args.savefolder + "_eps_" + str(args.eps) + \
-        "_fp_" + str(args.fp) + "_areak_" + str(args.areak) + ".txt"
+        "_fp_" + str(args.fp) + "_areak_" + str(args.areak) + \
+        "_kappa_" + str(args.kappa) + ".txt"
     read_write.write_single_analysis_data(corr_len, savefile)
     
     ### collect the data for a phase diagram
@@ -93,7 +101,7 @@ def main():
         savefile = savebase + aname + ".txt"
         fl = open(savefile, "a")
         fl.write(str(sim.eps) + "\t" + str(sim.fp) + "\t" + str(sim.areak) \
-            + "\t" + str(corr_len) + "\n")
+            + "\t" + str(sim.kappa) + "\t" + str(corr_len) + "\n")
         fl.close()
 
     return

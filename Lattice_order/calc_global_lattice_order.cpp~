@@ -138,7 +138,7 @@ int main (int argc, char *argv[]) {
   
   int nsteps, nbeads, nsamp, ncells;
   nsteps = nbeads = nsamp = ncells = 0;
-  double lx, ly, dt, eps, rho, fp, areak, kappa, bl, sigma;
+  double lx, ly, dt, eps, rho, fp, areak, kappa = bl, sigma;
   lx = ly = dt = eps = rho = fp = areak = kappa = bl = sigma = 0.;
   
   read_sim_data(filename, nsteps, nbeads, nsamp, ncells, lx, ly, dt, eps, rho, fp, areak, kappa, bl, sigma);

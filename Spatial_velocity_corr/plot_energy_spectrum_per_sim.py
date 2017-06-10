@@ -29,6 +29,11 @@ def power_law(x, a, b):
 
 ##########################################################################
 
+def eight_thirds(x, a):
+    return a * x**(-8./3.)
+ 
+##########################################################################
+    
 def five_thirds(x, a):
     return a * x**(-5./3.)
 
@@ -61,15 +66,15 @@ def plot_data(x, y, sim, savebase, savefolder, save_eps):
     ### normalization and appropriate data range selection
     
     xnf = x[dcf:ucf]/knorm
-    ynf = y[dcf:ucf]
+    ynf = y[dcf:ucf]/x[dcf:ucf]
     xn = x[dc:uc]/knorm
-    yn = y[dc:uc]
+    yn = y[dc:uc]/x[dc:uc]
     
     ### curve fitting
     
-#    popt, pcov = curve_fit(five_thirds, xnf, ynf)
-#    yfit = five_thirds(xnf, popt[0])
-#    print popt[0]
+    popt, pcov = curve_fit(five_thirds, xnf, ynf)
+    yfit = five_thirds(xnf, popt[0])
+    print popt[0]
                           
     ### set general plot properties
 
@@ -98,8 +103,8 @@ def plot_data(x, y, sim, savebase, savefolder, save_eps):
     ax0.axvline(2*np.pi/(sim.lx*knorm/2.),color='black')
     ax0.axvline(2*np.pi/(sim.r_avg*2.*knorm))
     
-#    line1 = ax0.loglog(xnf, 2*yfit, '--', \
-#                     linewidth=2.0, label=label, color='red')  
+    line1 = ax0.loglog(xnf, yfit, '--', \
+                     linewidth=2.0, label=label, color='red')  
     
 #    line1 = ax0.loglog(xn, xn**-5./3., '--', \
 #                     linewidth=2.0, label=label) 
@@ -155,7 +160,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--eps", type=float, help="Strength of LJ potential")
     parser.add_argument("-f", "--fp", type=float, help="Propulsion force")
-    parser.add_argument("-k", "--areak", type=float, help="Strength of area constraint potential")
+    parser.add_argument("-a", "--areak", type=float, help="Strength of area constraint potential")
+    parser.add_argument("-k", "--kappa", type=float, help="Bending rigidity")    
     parser.add_argument("-fl", "--folder", nargs="?", \
                         const='/local/duman/SIMULATIONS/Cells_in_LAMMPS/density_0.8/', \
                         help="Folder containing data, as in /local/duman/SIMULATIONS/Cells_in_LAMMPS/density_0.8/")    
@@ -169,13 +175,17 @@ def main():
     
     ### read general information from the folder
     
-    path1 = 'eps_' + str(args.eps) + '/fp_' + str(args.fp) + '/areak_' + str(args.areak) + '/' 
+    path1 = 'eps_' + str(args.eps) + '/fp_' + str(args.fp) + \
+        '/areak_' + str(args.areak) + '/kappa_' + str(args.kappa) + '/' 
     datafolder = args.folder + path1
     sim = read_write.read_sim_info(datafolder)
     
     ### read the data
     
-    path2 = 'eps_' + str(args.eps) + '_fp_' + str(args.fp) + '_areak_' + str(args.areak) 
+#    path2 = 'eps_' + str(args.eps) + '_fp_' + str(args.fp) + \
+#        '_areak_' + str(args.areak) + '_kappa_' + str(args.kappa)
+    path2 = 'eps_' + str(args.eps) + '_fp_' + str(args.fp) + \
+        '_areak_' + str(args.areak) 
     analysisdatabase = '/usr/users/iff_th2/duman/Cells_in_LAMMPS/DATA/'
     analysisdatabase += args.savefolder + '/'
     analysisdata = analysisdatabase + args.savefolder + '_' + path2 + '.txt'

@@ -66,14 +66,15 @@ def main():
                         help="Folder to save the data, as in /usr/users/iff_th2/duman/Cells_in_LAMMPS/DATA/") 
     parser.add_argument("-sf", "--savefolder", nargs="?", \
                         const='Overlap_fnc', \
-                        help="Specific folder for saving, as in Overlap_fnc")     
+                        help="Specific folder for saving, as in Overlap_fnc")   
+    parser.add_argument("-b","--bending", action="store_true", help="Decide whether to include bending or not")                    
     parser.add_argument("-s","--save_eps", action="store_true", help="Decide whether to save in eps or not") 
     args = parser.parse_args()
     
     ### read the data and general information from the folder
     
-    sim, cells, beads = read_write.read_h5_file(args.folder)
-    print "folder = ", args.folder, "cells.xu = \n", cells.xu
+    sim, cells, beads = read_write.read_h5_file(args.folder, args.bending)
+    print "folder = ", args.folder, " bending rigidity = ", sim.kappa
         
     ### calculate the overlap fnc of displacements of the centre of mass of cells
 
@@ -82,7 +83,7 @@ def main():
     
     ### write the overlap fnc data to the corresponding file
     
-    read_write.write_2d_analysis_data(delay, overlap, args.savebase, args.savefolder, sim)
+    read_write.write_2d_analysis_data(delay, overlap, args.savebase, args.savefolder, sim, args.bending)
     
     return
     

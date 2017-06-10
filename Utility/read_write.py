@@ -128,7 +128,7 @@ def write_single_analysis_data(data, f):
  
 ##############################################################################
     
-def write_2d_analysis_data(x, y, savebase, savefolder, sim):
+def write_2d_analysis_data(x, y, savebase, savefolder, sim, bending=False):
     """ write 2d analysis data to the corresponding file
     EXAMPLE:
     savebase: /usr/users/iff_th2/duman/Cells_in_LAMMPS/DATA/
@@ -138,8 +138,13 @@ def write_2d_analysis_data(x, y, savebase, savefolder, sim):
     
     base = savebase + savefolder + '/'
     os.system("mkdir -p " + base)
-    fpath = base + savefolder + "_eps_" + \
-        str(sim.eps) + "_fp_" + str(sim.fp) + "_areak_" + str(sim.areak) + ".txt"  
+    if bending:
+        fpath = base + savefolder + "_eps_" + \
+            str(sim.eps) + "_fp_" + str(sim.fp) + "_areak_" + str(sim.areak) + \
+            "_kappa_" + str(sim.kappa) + ".txt"  
+    else:
+        fpath = base + savefolder + "_eps_" + \
+            str(sim.eps) + "_fp_" + str(sim.fp) + "_areak_" + str(sim.areak) + ".txt"          
   
     ### write the data
     
@@ -184,15 +189,29 @@ def read_multid_analysis_data(f):
 
 ##############################################################################
 
-def gen_folders(eps, fp, areak, analysis, dbase, analysisdbase):
+def gen_folders(eps, fp, areak, kappa, analysis, dbase, analysisdbase):
     """ data and analysis folders generator"""
     
-    path1 = 'eps_' + str(eps) + '/fp_' + str(fp) + '/areak_' + str(areak)   
-    path2 = analysis + '_eps_' + str(eps) + '_fp_' + str(fp) + '_areak_' + str(areak) + '.txt'  
+    path1 = 'eps_' + str(eps) + '/fp_' + str(fp) + '/areak_' + str(areak)  + \
+        '/kappa_' + str(kappa)  
+    path2 = analysis + '_eps_' + str(eps) + '_fp_' + str(fp) + \
+        '_areak_' + str(areak) + '_kappa_' + str(kappa) + '.txt'          
     datafolder = dbase + path1 + '/'
     analysisfile = analysisdbase + path2  
 
     return datafolder, analysisfile
+    
+#def gen_folders(eps, fp, areak, analysis, dbase, analysisdbase, kappa=100.0):
+#    """ data and analysis folders generator"""
+#    
+#    path1 = 'eps_' + str(eps) + '/fp_' + str(fp) + '/areak_' + str(areak)  + \
+#        '/kappa_' + str(kappa)  
+#    path2 = analysis + '_eps_' + str(eps) + '_fp_' + str(fp) + \
+#        '_areak_' + str(areak) + '_kappa_' + str(kappa) + '.txt'          
+#    datafolder = dbase + path1 + '/'
+#    analysisfile = analysisdbase + path2  
+#
+#    return datafolder, analysisfile
     
 ##############################################################################
     
