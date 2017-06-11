@@ -78,7 +78,7 @@ def main():
         
     ### calculate the overlap fnc of displacements of the centre of mass of cells
 
-    threshold_amplitude = 4.0
+    threshold_amplitude = 7.0
     delay, overlap = calculate_overlap_fnc(cells.xu, sim, threshold_amplitude)
     
     ### write the overlap fnc data to the corresponding file
