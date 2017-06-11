@@ -22,6 +22,7 @@
 #include "omp.h"
 #include "../Utility/read_write.hpp"
 #include "../Utility/basic.hpp"
+#include "../Utility/sim_info.hpp"
 
 #define pi M_PI
 
@@ -218,30 +219,13 @@ void calc_sp_vel_corr (double cvv[],
 
 int main (int argc, char *argv[]) {
 
-  // get the file name by parsing
+  // get the file name by parsing and load simulation data
   
   string filename = argv[1];
   cout << "Calculating spatial velocity correlation of the following file: \n" << filename << endl;
-
-  // read in general simulation data
-  
-  int nsteps, nbeads, nsamp, ncells;
-  nsteps = nbeads = nsamp = ncells = 0;
-  double lx, ly, dt, eps, rho, fp, areak, bl, sigma;
-  lx = ly = dt = eps = rho = fp = areak = bl = sigma = 0.;
-  
-  read_sim_data(filename, nsteps, nbeads, nsamp, ncells, lx, ly,
-                dt, eps, rho, fp, areak, bl, sigma);
-  
-  // print simulation information
-  
-  cout << "nsteps = " << nsteps << endl;
-  cout << "ncells = " << ncells << endl;
-  
-  // read in array data
-  
-  int nbpc[ncells];
-  read_integer_array(filename, "/cells/nbpc", nbpc);
+  SimInfo sim(filename);
+  cout << "nsteps = " << sim.nsteps << endl;
+  cout << "ncells = " << sim.ncells << endl;
  
   // read in the cell position data all at once
   
@@ -251,39 +235,39 @@ int main (int argc, char *argv[]) {
   (nsteps, ncells) in x and y separately 
   */
   
-  double **x = new double*[nsteps];
-  for (int i = 0; i < nsteps; i++) x[i] = new double[ncells];
+  double **x = new double*[sim.nsteps];
+  for (int i = 0; i < sim.nsteps; i++) x[i] = new double[sim.ncells];
   
-  double **y = new double*[nsteps];
-  for (int i = 0; i < nsteps; i++) y[i] = new double[ncells];
+  double **y = new double*[sim.nsteps];
+  for (int i = 0; i < sim.nsteps; i++) y[i] = new double[sim.ncells];
   
-  for (int i = 0; i < nsteps; i++) {
-    for (int j = 0; j < ncells; j++) {
-      x[i][j] = 0.;  y[i][j] = 0.;
+  for (int i = 0; i < sim.nsteps; i++) {
+    for (int j = 0; j < sim.ncells; j++) {
+      x[i][j] = 0.; y[i][j] = 0.;
     }
   }
   
-  read_all_pos_data(filename, x, y, nsteps, ncells, "/cells/comu");
+  read_all_pos_data(filename, x, y, sim.nsteps, sim.ncells, "/cells/comu");
 
   // set variables related to the analysis
   
-  const int delta = 10;                 // number of data points between two steps
-                                        // to calculate velocity
-  const int nvels = nsteps-delta;       // number of data points in the velocity array
-  const int longest_dist = (int)lx+2;   // longest distance allowed by the sim. box
+  const int delta = 10;                       // number of data points between two steps
+                                              // to calculate velocity
+  const int nvels = sim.nsteps-delta;         // number of data points in the velocity array
+  const int longest_dist = (int)(sim.lx+2);   // longest distance allowed by the sim. box
   double cvv[longest_dist];
   for (int i = 0; i < longest_dist; i++) 
     cvv[i] = 0.; 
   
   // calculate the velocities
   
-  vector<double> vx(nvels*ncells);
-  vector<double> vy(nvels*ncells);
-  calc_velocity(vx, vy, x, y, lx, ly, delta, ncells, nvels, dt);
+  vector<double> vx(nvels*sim.ncells);
+  vector<double> vy(nvels*sim.ncells);
+  calc_velocity(vx, vy, x, y, sim.lx, sim.ly, delta, sim.ncells, nvels, sim.dt);
   
   // calculate the velocity correlation in space
   
-  calc_sp_vel_corr (cvv, vx, vy, x, y, lx, ly, ncells, nvels,
+  calc_sp_vel_corr (cvv, vx, vy, x, y, sim.lx, sim.ly, sim.ncells, nvels,
                     delta, longest_dist);
   
 
