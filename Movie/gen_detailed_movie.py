@@ -286,9 +286,9 @@ def main():
     parser.add_argument("-sb", "--savebase", nargs="?", \
                         const = "/usr/users/iff_th2/duman/Cells_in_LAMMPS/MOVIES/detailed/", \
                         help="Folder to save the data, as in /usr/users/iff_th2/duman/Cells_in_LAMMPS/MOVIES/detailed/")     
-    parser.add_argument("-ti","--init_time", nargs="?", const=10, type=int, \
+    parser.add_argument("-ti","--init_time", nargs="?", const=50, type=int, \
                         help="First frame of the video (in terms of frame number), you can also leave it empty")
-    parser.add_argument("-tf","--fin_time", nargs="?", const=1000, type=int, \
+    parser.add_argument("-tf","--fin_time", nargs="?", const=1500, type=int, \
                         help="Last frame of the video (in terms of frame number), you can also leave it empty")
     parser.add_argument("-b","--bending", action="store_true", help="Decide whether to take bending rigidity as a parameter or not")                                    
     parser.add_argument("-s","--save_eps", action="store_true", help="Decide whether to save in eps or not")            
