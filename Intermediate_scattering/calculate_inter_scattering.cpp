@@ -2,7 +2,7 @@
 /* calculate intermediate scattering function */
 
 // COMPILATION AND RUN COMMANDS:
-// g++ -Wl,-rpath=$HOME/hdf5/lib -L$HOME/hdf5/lib -I$HOME/hdf5/include ${spath}/calculate_inter_scattering.cpp ${upath}/read_write.cpp -lhdf5 -fopenmp -Wno-write-strings -o calc_inter_scattering
+// g++ -O3 -Wl,-rpath=$HOME/hdf5/lib -L$HOME/hdf5/lib -I$HOME/hdf5/include ${spath}/calculate_inter_scattering.cpp ${upath}/read_write.cpp -lhdf5 -lm -fopenmp -Wno-write-strings -o calc_inter_scattering
 // ./calc_inter_scattering out.h5 ${path}/Inter_scattering.txt
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -11,6 +11,8 @@
 #include <cmath>
 #include "omp.h"
 #include "../Utility/read_write.hpp"
+#include "../Utility/basic.hpp"
+#include "../Utility/sim_info.hpp"
 
 #define pi M_PI
 
@@ -125,30 +127,13 @@ void compute_inter_scattering (double **x, double **y, double *Fs, double *delay
 
 int main (int argc, char *argv[]) {
 
-  // get the file name by parsing
+  // get the file name by parsing and load simulation data
   
   char *filename = argv[1];
   cout << "Calculating intermediate scattering function of the following file: \n" << filename << endl;
-
-  // read in general simulation data
-  
-  int nsteps, nbeads, nsamp, ncells;
-  nsteps = nbeads = nsamp = ncells = 0;
-  double lx, ly, dt, eps, rho, fp, areak, bl, sigma;
-  lx = ly = dt = eps = rho = fp = areak = bl = sigma = 0.;
-  
-  read_sim_data(filename, nsteps, nbeads, nsamp, ncells, lx, ly, dt, eps, rho, fp, areak, bl, sigma);
-  
-  // print simulation information
-  
-  cout << "nsteps = " << nsteps << endl;
-  cout << "ncells = " << ncells << endl;
-  
-  // read in array data
-  
-  int nbpc[ncells];
-  for (int i = 0; i < ncells; i++) nbpc[i] = 0;
-  //read_integer_array(filename, "/cell/nbpc", nbpc);
+  SimInfo sim(filename);
+  cout << "nsteps = " << sim.nsteps << endl;
+  cout << "ncells = " << sim.ncells << endl;
  
   // read in the cell position data all at once
   
@@ -158,23 +143,23 @@ int main (int argc, char *argv[]) {
   (nsteps, ncells) in x and y separately 
   */
   
-  double **x = new double*[nsteps];
-  for (int i = 0; i < nsteps; i++) x[i] = new double[ncells];
+  double **x = new double*[sim.nsteps];
+  for (int i = 0; i < sim.nsteps; i++) x[i] = new double[sim.ncells];
   
-  double **y = new double*[nsteps];
-  for (int i = 0; i < nsteps; i++) y[i] = new double[ncells];
+  double **y = new double*[sim.nsteps];
+  for (int i = 0; i < sim.nsteps; i++) y[i] = new double[sim.ncells];
   
-  for (int i = 0; i < nsteps; i++) {
-    for (int j = 0; j < ncells; j++) {
+  for (int i = 0; i < sim.nsteps; i++) {
+    for (int j = 0; j < sim.ncells; j++) {
       x[i][j] = 0.; y[i][j] = 0.;
     }
   }
   
-  read_all_pos_data(filename, x, y, nsteps, ncells, "/cells/comu");
+  read_all_pos_data(filename, x, y, sim.nsteps, sim.ncells, "/cells/comu");
   
   // allocate the arrays
   
-  int ndelay = nsteps/2;
+  int ndelay = sim.nsteps/2;
   double delay[ndelay];
   double Fs[ndelay];
   for (int j = 0; j < ndelay; j++) {
@@ -184,7 +169,7 @@ int main (int argc, char *argv[]) {
   // calculate the intermediate scattering function
   
   double qvector = 2*pi/7.0;
-  compute_inter_scattering(x, y, Fs, delay, ndelay, qvector, nsteps, ncells, dt);  
+  compute_inter_scattering(x, y, Fs, delay, ndelay, qvector, sim.nsteps, sim.ncells, sim.dt);
   
   // write the computed data
   
@@ -194,7 +179,7 @@ int main (int argc, char *argv[]) {
   
   // deallocate the arrays
   
-  for (int i = 0; i < nsteps; i++) {
+  for (int i = 0; i < sim.nsteps; i++) {
     delete [] x[i];
     delete [] y[i];
   }
