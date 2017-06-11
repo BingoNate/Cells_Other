@@ -279,7 +279,7 @@ int main (int argc, char *argv[]) {
   
   // deallocate the arrays
   
-  for (int i = 0; i < nsteps; i++) {
+  for (int i = 0; i < sim.nsteps; i++) {
     delete [] x[i];
     delete [] y[i];
   }
