@@ -114,7 +114,7 @@ def collect_data(args, analysisdatabase):
                                                               args.savefolder, 
                                                               args.folder, analysisdatabase)  
             
-        sims[p] = read_write.read_sim_info(datafolder)
+        sims[p] = read_write.read_sim_info(datafolder, True)
         x, y = read_write.read_2d_analysis_data(analysisfile)
         data[p] = y
 
