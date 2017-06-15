@@ -95,7 +95,7 @@ def main():
         aname = "PHASE_DIAGRAM"
         savebase = args.savebase + aname + "/"
         os.system("mkdir -p " + savebase)
-        aname_type = '_from_corr_length'
+        aname_type = aname + '_from_corr_length'
         savefile = savebase + aname_type + ".txt"
         fl = open(savefile, "a")
         fl.write(str(sim.eps) + "\t" + str(sim.fp) + "\t" + str(sim.areak) \
