@@ -81,10 +81,8 @@ def main():
     folder = args.folder + "eps_" + str(args.eps) + \
         "/fp_" + str(args.fp) + "/areak_" + str(args.areak) + \
         "/kappa_" + str(args.kappa) + "/"
-    if args.kappa == 100.0:
-        sim = read_write.read_sim_info(folder, False)
-    else:
-        sim = read_write.read_sim_info(folder, True)    
+    sim = read_write.read_sim_info(folder, True)    
+    
     ### calculate exponents
     
     exp_folder = "/usr/users/iff_th2/duman/Cells_in_LAMMPS/DATA/"
