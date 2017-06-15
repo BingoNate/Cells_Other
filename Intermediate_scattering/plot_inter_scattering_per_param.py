@@ -38,18 +38,25 @@ def plot_data(x, data, param_choice, sims, savebase, savefolder, save_eps):
     fig = plt.figure()
     subp = misc_tools.Subplots(fig, ax_len, ax_sep, ax_b, total_subplots_in_x) 
     ax0 = subp.addSubplot()
-                          
+                   
+    ### save properties
+    
+    name, pname = misc_tools.gen_save_props(param_choice, sims[data.keys()[0]])
+    base = savebase + savefolder + '/'
+    os.system("mkdir -p " + base)  
+    base = savebase + savefolder + '/' + name + '/'
+    os.system("mkdir -p " + base) 
+       
     ### plot 
-
-    subp = misc_tools.Subplots(fig, ax_len, ax_sep, ax_b, total_subplots_in_x) 
-    ax0 = subp.addSubplot()
     
     for p in data.keys():
         
         sim = sims[p]       # simulation information
         y = data[p]         # analysis data
     
-        label = '$\\epsilon=$' + str(sim.eps) + '$,f=$' + str(sim.fp) + '$,\\kappa_{A}=$' + str(sim.areak)
+        label = '$\\epsilon=$' + str(sim.eps) + \
+            '$,f=$' + str(sim.fp) + '$,\\kappa_{A}=$' + str(sim.areak) + \
+            '$,\\kappa=$' + str(sim.kappa)
         line0 = ax0.semilogx(x/sim.tau_D, y, \
                          linewidth=2.0, label=label)
     
@@ -79,30 +86,14 @@ def plot_data(x, data, param_choice, sims, savebase, savefolder, save_eps):
     ax0.legend(bbox_to_anchor=(1.005, 0.,0.65, 1.), loc=2, borderaxespad=0., \
         prop={'size': 20}, mode="expand", frameon=False)
     
-    ### save
-
-    name = ''
-    pname = ''
-    if param_choice == 'areak': 
-        name = 'AREAK'
-        pname = name + '_eps_' + str(sim.eps) + '_fp_' + str(sim.fp)
-    elif param_choice == 'eps':
-        name = 'EPS'
-        pname = name + '_fp_' + str(sim.fp) + '_areak_' + str(sim.areak)
-    elif param_choice == 'fp':
-        name = 'FP'
-        pname = name + '_eps_' + str(sim.eps) + '_areak_' + str(sim.areak)
-    base = savebase + savefolder + '/'
-    os.system("mkdir -p " + base)  
-    base = savebase + savefolder + '/' + name + '/'
-    os.system("mkdir -p " + base)    
+    ### save   
     
     savepath1 = base + savefolder + "_per_" + pname + ".png"
     if save_eps:
         savepath2 = base + savefolder + "_per_" + name + ".eps"            
-    plt.savefig(savepath1, dpi=200, bbox_inches='tight', pad_inches=0.08)
+    plt.savefig(savepath1, dpi=300, bbox_inches='tight', pad_inches=0.08)
     if save_eps:
-        plt.savefig(savepath2, dpi=200, bbox_inches='tight', pad_inches=0.08)        
+        plt.savefig(savepath2, dpi=300, bbox_inches='tight', pad_inches=0.08)        
     fig.clf()                             
         
     return
@@ -120,6 +111,8 @@ def main():
                         help="Propulsion force")
     parser.add_argument("-a", "--areak", type=float, nargs="?", const=-1, \
                         help="Area constraint potential strength")
+    parser.add_argument("-k", "--kappa", type=float, nargs="?", const=-1, \
+                        help="Bending rigidity")      
     parser.add_argument("-fl", "--folder", nargs="?", \
                         const='/local/duman/SIMULATIONS/Cells_in_LAMMPS/density_0.8/', \
                         help="Folder containing data, as in /local/duman/SIMULATIONS/Cells_in_LAMMPS/density_0.8/")    
@@ -134,40 +127,8 @@ def main():
     ### accummulate data as a function of areak -with a dictionary-
 
     analysisdatabase = '/usr/users/iff_th2/duman/Cells_in_LAMMPS/DATA/'  
-    analysisdatabase += args.savefolder + '/'    
-    
-    ### detect the parameter choice 
-    
-    param = []
-    param_choice = ''
-    if args.eps == -1:
-        param_choice = 'eps'
-        param = [0.05, 0.5, 1.0, 5.0, 10.0, 20.0]
-    if args.fp == -1:
-        param_choice = 'fp'
-        param = [0.0, 0.5, 1.0, 3.0, 5.0, 10.0]
-    if args.areak == -1:
-        param_choice = 'areak'
-        param = [1.0, 10.0, 100.0]    
-
-    data = {}       # carries the data per parameter set
-    sims = {}       # carries the simulation information per parameter set
-
-    for p in param:
-        
-        if param_choice == 'areak':
-            datafolder, analysisfile = read_write.gen_folders(args.eps, args.fp, p, args.savefolder, 
-                                                   args.folder, analysisdatabase)
-        elif param_choice == 'eps':
-            datafolder, analysisfile = read_write.gen_folders(p, args.fp, args.areak, args.savefolder, 
-                                                   args.folder, analysisdatabase)
-        elif param_choice == 'fp':            
-            datafolder, analysisfile = read_write.gen_folders(args.eps, p, args.areak, args.savefolder, 
-                                                   args.folder, analysisdatabase)  
-            
-        sims[p] = read_write.read_sim_info(datafolder)
-        x, y = read_write.read_2d_analysis_data(analysisfile)
-        data[p] = y
+    analysisdatabase += args.savefolder + '/'        
+    x, data, param_choice, sims = misc_tools.collect_data(args, analysisdatabase)
         
     ### plot the data as a function of the parameter
     

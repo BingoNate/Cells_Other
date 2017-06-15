@@ -7,6 +7,7 @@
 
 import numpy as np
 import math
+import read_write
 
 ############################################################################
 
@@ -34,6 +35,91 @@ def get_img(x, lx):
     
     return x-np.floor(x/lx)*lx
 
+##############################################################################
+   
+def gen_save_props(param_choice, sim):
+    """ generate saving properties for the figure"""
+    
+    name = ''
+    pname = ''
+    if param_choice == 'areak': 
+        name = 'AREAK'
+        pname = name + '_eps_' + str(sim.eps) + '_fp_' + str(sim.fp) + \
+            '_kappa_' + str(sim.kappa)
+        xlab = '$\kappa_A$'
+        tit = '$\epsilon=$' + str(sim.eps) + ',$f_m=$' + str(sim.fp) + \
+            ',$\kappa=$' + str(sim.kappa)
+    elif param_choice == 'eps':
+        name = 'EPS'
+        pname = name + '_fp_' + str(sim.fp) + '_areak_' + str(sim.areak) + \
+            '_kappa_' + str(sim.kappa)
+        xlab = '$\epsilon$'
+        tit = '$f_m=$' + str(sim.fp) + ',$\kappa_A=$' + str(sim.areak) + \
+            ',$\kappa=$' + str(sim.kappa)        
+    elif param_choice == 'fp':
+        name = 'FP'
+        pname = name + '_eps_' + str(sim.eps) + '_areak_' + str(sim.areak) + \
+            '_kappa_' + str(sim.kappa)
+        xlab = '$f_{m}$'
+        tit = '$\epsilon=$' + str(sim.eps) + ',$\kappa_A=$' + str(sim.areak) + \
+            ',$\kappa=$' + str(sim.kappa)          
+    elif param_choice == 'kappa':
+        name = 'KAPPA'
+        pname = name + '_eps_' + str(sim.eps) + '_fp_' + str(sim.fp) + \
+            '_areak_' + str(sim.areak)
+        xlab = '$\kappa$'
+        tit = '$\epsilon=$' + str(sim.eps) + ',$f_m=$' + str(sim.fp) + \
+            ',$\kappa_A=$' + str(sim.areak) 
+            
+    return name, pname
+
+##############################################################################
+    
+def collect_data(args, analysisdatabase):
+
+    param = []
+    param_choice = ''
+    if args.eps == -1:
+        param_choice = 'eps'
+        param = [0.05, 1.0, 5.0, 20.0]
+    if args.fp == -1:
+        param_choice = 'fp'
+        param = [0.5, 1.0, 5.0]
+    if args.areak == -1:
+        param_choice = 'areak'
+        param = [1.0, 10.0, 100.0]
+    if args.kappa == -1:
+        param_choice = 'kappa'
+        param = [1.0, 10.0, 100.0, 1000.0]
+
+    data = {}       # carries the data per parameter set
+    sims = {}       # carries the simulation information per parameter set
+
+    for p in param:
+        
+        if param_choice == 'areak':
+            datafolder, analysisfile = read_write.gen_folders(args.eps, args.fp, p, args.kappa,
+                                                              args.savefolder, 
+                                                              args.folder, analysisdatabase)
+        elif param_choice == 'eps':
+            datafolder, analysisfile = read_write.gen_folders(p, args.fp, args.areak, args.kappa,
+                                                              args.savefolder, 
+                                                              args.folder, analysisdatabase)
+        elif param_choice == 'fp':            
+            datafolder, analysisfile = read_write.gen_folders(args.eps, p, args.areak, args.kappa,
+                                                              args.savefolder, 
+                                                              args.folder, analysisdatabase)  
+        elif param_choice == 'kappa':            
+            datafolder, analysisfile = read_write.gen_folders(args.eps, args.fp, args.areak, p,
+                                                              args.savefolder, 
+                                                              args.folder, analysisdatabase)  
+            
+        sims[p] = read_write.read_sim_info(datafolder)
+        x, y = read_write.read_2d_analysis_data(analysisfile)
+        data[p] = y
+
+    return x, data, param_choice, sims
+    
 ##############################################################################
 
 class Beads:
