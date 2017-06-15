@@ -29,7 +29,7 @@ from matplotlib._png import read_png
 import colorsys 
 import seaborn as sns
 from scipy.stats.kde import gaussian_kde
-#sns.set()
+
 sns.set(style="white",context='paper',
         font_scale=1.2,font="Open Sans",
         rc={'mathtext.default': 'regular','font.size': 30, 
@@ -62,15 +62,32 @@ class Phase:
             
         if idx_key == "areak":
             if a == 1.0:
-                if e == 0.05:
-                    if f >= 1.0:
-                        self.type = "none"
-                elif e == 0.5 or e == 1.0:
-                    if f >= 3.0:
-                        self.type = "none"
-                else:
-                    if f == 10.0:
-                        self.type = "none"
+                if f == 5.0:
+                    self.type = "none"
+                if e == 5.0 and f == 1.0:
+                    self.type = "none"
+        elif idx_key == "kappa":
+            if a == 1.0 or a == 10.0:
+                if e == 5.0 and f == 5.0:
+                    self.type = "none"
+                if e == 20.0 and f == 5.0:
+                    self.type = "none"
+            if a == 1.0:
+                if e == 20.0 and f == 0.5:
+                    self.type = "none"
+        if e == 0.05:
+            self.type = "none"
+
+               
+#                if e == 0.05:
+#                    if f >= 1.0:
+#                        self.type = "none"
+#                elif e == 0.5 or e == 1.0:
+#                    if f >= 3.0:
+#                        self.type = "none"
+#                else:
+#                    if f == 10.0:
+#                        self.type = "none"
             
         self.set_plot_props()
         
@@ -162,7 +179,7 @@ def plot_slices(phases, slicer, value):
         if phases[k].type == "None":
             xi = 0.0
             yi = 0.0
-        line0 = ax.scatter(xi, yi, marker=mi, c=zi, s=30,
+        line0 = ax.scatter(xi, yi, marker=mi, c=zi, s=70,
                    cmap=plt.cm.get_cmap('jet',quant_steps),
                     edgecolors='None', alpha=1.0, norm=norm, 
                     vmin=0.1, vmax=1.4)          
@@ -174,7 +191,7 @@ def plot_slices(phases, slicer, value):
     
     if slicer == "areak":
         ax.set_title(r'$\kappa_{A} = $' + str(value), fontsize=30)
-    else:
+    elif slicer == "kappa":
         ax.set_title(r'$\kappa_{B} = $' + str(value), fontsize=30)        
         
     ax.set_xscale('log')
@@ -212,7 +229,7 @@ def load_data(filepath, totalData, slicer):
                 key = (float(e), float(f), float(a))
             else:
                 continue
-        else:
+        elif slicer == 'kappa':
             if float(a) == 10.0:
                 key = (float(e), float(f), float(k))    
             else:
@@ -246,7 +263,7 @@ def main():
     parser.add_argument("-s", "--sliceby", type=str, \
                         help="Slice by argument -areak or kappa-")
     parser.add_argument("-v", "--value", type=float, \
-                        help="Slice by value in areak or kappa")
+                        help="Slice by value -in areak or kappa-")
     parser.add_argument("-te", "--exp_threshold", type=float, \
                         help="Threshold value of MSD exponent to distinguish the phases")
     parser.add_argument("-tc", "--corr_threshold", type=float, \
@@ -256,12 +273,12 @@ def main():
     ### index the phase space
 
     if args.sliceby == "areak":
-        eps = [0.05, 0.5, 1.0, 5.0, 10.0, 20.0]
-        fp = [0.0, 0.5, 1.0, 3.0, 5.0, 10.0]
+        eps = [0.05, 1.0, 5.0, 20.0]
+        fp = [0.5, 1.0, 5.0]
         areak = [1.0, 10.0, 100.0]
         kappa = [100.0]
         totalData = len(eps)*len(fp)*len(areak)
-    else:
+    elif args.sliceby == "kappa":
         eps = [0.05, 1.0, 5.0, 20.0]
         fp = [0.5, 1.0, 5.0]
         areak = [10.0]
