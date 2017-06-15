@@ -67,10 +67,7 @@ def main():
     folder = args.folder + "eps_" + str(args.eps) + \
         "/fp_" + str(args.fp) + "/areak_" + str(args.areak) + \
         "/kappa_" + str(args.kappa) + "/"
-    if args.kappa == 100.0:
-        sim = read_write.read_sim_info(folder, False)
-    else:
-        sim = read_write.read_sim_info(folder, True)
+    sim = read_write.read_sim_info(folder, True)
     
     ### calculate correlation length
     
@@ -98,7 +95,8 @@ def main():
         aname = "PHASE_DIAGRAM"
         savebase = args.savebase + aname + "/"
         os.system("mkdir -p " + savebase)
-        savefile = savebase + aname + ".txt"
+        aname_type = '_from_corr_length'
+        savefile = savebase + aname_type + ".txt"
         fl = open(savefile, "a")
         fl.write(str(sim.eps) + "\t" + str(sim.fp) + "\t" + str(sim.areak) \
             + "\t" + str(sim.kappa) + "\t" + str(corr_len) + "\n")
