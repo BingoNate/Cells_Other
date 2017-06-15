@@ -110,8 +110,9 @@ def main():
     if args.save:
         aname = "PHASE_DIAGRAM"
         savebase = args.savebase + aname + "/"
+        aname_type = aname + "_from_exponents"
         os.system("mkdir -p " + savebase)
-        savefile = savebase + aname + ".txt"
+        savefile = savebase + aname_type + ".txt"
         fl = open(savefile, "a")
         fl.write(str(sim.eps) + "\t" + str(sim.fp) + "\t" + str(sim.areak) \
             + "\t" + str(sim.kappa) + "\t" + str(exp) + "\n")
