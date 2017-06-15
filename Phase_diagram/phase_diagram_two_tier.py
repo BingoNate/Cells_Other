@@ -277,13 +277,13 @@ def main():
         fp = [0.5, 1.0, 5.0]
         areak = [1.0, 10.0, 100.0]
         kappa = [100.0]
-        totalData = len(eps)*len(fp)*len(areak)
+        totalData = len(eps)*len(fp)*len(areak)*4
     elif args.sliceby == "kappa":
         eps = [0.05, 1.0, 5.0, 20.0]
         fp = [0.5, 1.0, 5.0]
         areak = [10.0]
         kappa = [1.0, 10.0, 100.0, 1000.0]
-        totalData = len(eps)*len(fp)*len(kappa)
+        totalData = len(eps)*len(fp)*len(kappa)*3
     
     ### load the data into a dictionary
 
