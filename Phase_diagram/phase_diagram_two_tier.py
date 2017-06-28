@@ -230,7 +230,7 @@ def load_data(filepath, totalData, slicer):
             else:
                 continue
         elif slicer == 'kappa':
-            if float(a) == 10.0:
+            if float(a) == 100.0: ## changing from 10 to 100
                 key = (float(e), float(f), float(k))    
             else:
                 continue
@@ -281,7 +281,7 @@ def main():
     elif args.sliceby == "kappa":
         eps = [0.05, 1.0, 5.0, 20.0]
         fp = [0.5, 1.0, 5.0]
-        areak = [10.0]
+        areak = [100.0] ## changing from 10 to 100
         kappa = [1.0, 10.0, 100.0, 1000.0]
         totalData = len(eps)*len(fp)*len(kappa)*3-12
     

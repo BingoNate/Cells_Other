@@ -21,6 +21,7 @@
 #include <algorithm>
 #include "../Utility/read_write.hpp"
 #include "../Utility/basic.hpp"
+#include "../Utility/sim_info.hpp"
 
 #define pi M_PI
 
@@ -146,7 +147,7 @@ void calc_sp_vel_corr (double cvv[],
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void calc_energy_spectrum (double ek[], double kvec[],
+void calc_energy_spectrum_old (double ek[], double kvec[],
 			  const double cvv[],
 			  double lx, double ly,
 			  int ncells, int nsteps,
@@ -218,33 +219,75 @@ void calc_energy_spectrum (double ek[], double kvec[],
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+void calc_energy_spectrum (double *ek, double *kvec,
+			   const double cvv[],
+			   double *kxvec, double *kyvec,
+			   int Nmax, int ndata, int natoms, int nsteps, 
+			   double l, int njump) {
+  /* calculate the energy spectrum */
+			       
+  cout << "Calculating the energy spectrum" << endl;
+  
+  // note that ndata here refers to the longest distance (longest_dist)
+  // note that steps here refer to velocity data points
+  
+  // set preliminary data
+
+  vector<int> kcount(Nmax, 0);
+   
+  for (int step = 0; step < nsteps; step+=njump) {
+    
+    for (int kx = 0; kx < ndata; kx++) {
+	double kxt = kxvec[kx]; 
+      
+      for (int ky = 0; ky < ndata; ky++) {
+	double costerm = 0.;
+	double sinterm = 0.;
+	double kyt = kyvec[ky];
+	
+        for (int i = 0; i < ndata; i++) {
+          for (int j = 0; j < ndata; j++) {
+
+	    double dotp = kxt*i + kyt*j;
+	    double cvt = cvv[step*ndata*ndata+i*ndata+j];
+	    costerm += cos(dotp)*cvt;
+	    sinterm += sin(dotp)*cvt;
+            
+          }  // y distance loop
+        } // x distance loop
+
+	int knorm = (int)sqrt(kxt*kxt + kyt*kyt);
+	kcount[knorm]++;
+        ek[knorm] += sqrt(costerm*costerm + sinterm*sinterm);
+        
+      }  // circular orientation of kvector loop
+	
+    } // absolute value of kvector loop
+  
+  } // timesteps
+ 
+  // perform the normalization
+  
+  double totalData = nsteps/njump;
+  for (int j = 0; j < Nmax; j++)  { 
+    ek[j] /= (natoms*kcount[j]*2*pi); 
+  }  
+  
+  return;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 int main (int argc, char *argv[]) {
 
-  // get the file name by parsing
+ // get the file name by parsing and load simulation data
   
   string filename = argv[1];
   cout << "Calculating energy spectrum of the following file: \n" << filename << endl;
-
-  // read in general simulation data
-  
-  int nsteps, nbeads, nsamp, ncells;
-  nsteps = nbeads = nsamp = ncells = 0;
-  double lx, ly, dt, eps, rho, fp, areak, bl, sigma;
-  lx = ly = dt = eps = rho = fp = areak = bl = sigma = 0.;
-  
-  read_sim_data(filename, nsteps, nbeads, nsamp, ncells, lx, ly,
-                dt, eps, rho, fp, areak, bl, sigma);
-  
-  // print simulation information
-  
-  cout << "nsteps = " << nsteps << endl;
-  cout << "ncells = " << ncells << endl;
-  
-  // read in array data
-  
-  int nbpc[ncells];
-  read_integer_array(filename, "/cells/nbpc", nbpc);
- 
+  SimInfo sim(filename);  
+  cout << "nsteps = " << sim.nsteps << endl;
+  cout << "ncells = " << sim.ncells << endl;
+    
   // read in the cell position data all at once
   
   /* the position data is stored in the following format:
@@ -253,65 +296,65 @@ int main (int argc, char *argv[]) {
   (nsteps, ncells) in x and y separately 
   */
   
-  double **x = new double*[nsteps];
-  for (int i = 0; i < nsteps; i++) x[i] = new double[ncells];
+  double **x = new double*[sim.nsteps];
+  for (int i = 0; i < sim.nsteps; i++) x[i] = new double[sim.ncells];
   
-  double **y = new double*[nsteps];
-  for (int i = 0; i < nsteps; i++) y[i] = new double[ncells];
+  double **y = new double*[sim.nsteps];
+  for (int i = 0; i < sim.nsteps; i++) y[i] = new double[sim.ncells];
   
-  for (int i = 0; i < nsteps; i++) {
-    for (int j = 0; j < ncells; j++) {
-      x[i][j] = 0.;  y[i][j] = 0.;
+  for (int i = 0; i < sim.nsteps; i++) {
+    for (int j = 0; j < sim.ncells; j++) {
+      x[i][j] = 0.; y[i][j] = 0.;
     }
   }
   
-  read_all_pos_data(filename, x, y, nsteps, ncells, "/cells/comu");
+  read_all_pos_data(filename, x, y, sim.nsteps, sim.ncells, "/cells/comu");
 
   // set variables related to the analysis
   
-  const int delta = 10;                     // number of data points between two steps
+  const int delta = 4;                	    // number of data points between two steps
                                             // to calculate velocity
-  const int nvels = nsteps-delta;           // number of data points in the velocity array
-  const int longest_dist = (int)(lx/2+1);   // longest distance allowed by the sim. box
+  const int nvels = sim.nsteps-delta;           // number of data points in the velocity array
+  const int longest_dist = (int)(sim.lx/2+1);   // longest distance allowed by the sim. box
   double *cvv = new double[nvels*longest_dist*longest_dist];
   for (int i = 0; i < nvels*longest_dist*longest_dist; i++)
     cvv[i] = 0.; 
   
   // calculate the velocities
   
-  vector<double> vx(nvels*ncells);
-  vector<double> vy(nvels*ncells);
-  calc_velocity(vx, vy, x, y, lx, ly, delta, ncells, nvels, dt);
+  vector<double> vx(nvels*sim.ncells);
+  vector<double> vy(nvels*sim.ncells);
+  calc_velocity(vx, vy, x, y, sim.lx, sim.ly, delta, sim.ncells, nvels, sim.dt);
   
   // calculate the velocity correlation in space
   
-  calc_sp_vel_corr (cvv, vx, vy, x, y, lx, ly, ncells, nvels,
+  calc_sp_vel_corr (cvv, vx, vy, x, y, sim.lx, sim.ly, sim.ncells, nvels,
                     delta, longest_dist);
 
   // set variables related to energy spectrum
 
-  double delk = 2*pi/lx;
-  double lamda_min = 3.; 
-  double lamda_max = lx;
-  double kmax = 2*pi/lamda_min;
-  double kmin = 2*pi/lamda_max;
-  int nks = 24;
-  int njump = 20;
-  kmax = log(kmax);
-  kmin = log(kmin);  
-  int Nmax = static_cast<int>((kmax-kmin)/delk);
-  double wbin = (kmax-kmin)/Nmax;
-  double *kvec = new double[Nmax];
-  double *ek = new double[Nmax];
-  for (int j = 0; j < Nmax; j++) {
-    ek[j] = 0.;  kvec[j] = 0.;
+  double delk = 2.*pi/sim.lx;
+  int njump = 2;
+  int ndata = (int)sim.lx;
+  double *kxvec = new double[ndata];
+  double *kyvec = new double[ndata];  
+  for (int j = 0; j < ndata; j++) {
+    kxvec[j] = delk*j;  kyvec[j] = delk*j; 
   }
-
-  // calculate the energy spectrum in Fourier space
   
-  calc_energy_spectrum (ek, kvec, cvv, lx, ly, ncells, nvels,
-			delta, longest_dist, Nmax,
-			kmax, kmin, njump, delk);
+  double mink = 0.;
+  double maxk = ceil(sqrt(kxvec[ndata-1]*kxvec[ndata-1] + kyvec[ndata-1]*kyvec[ndata-1]));
+  int Nmax = (int)maxk;
+  double *ek = new double[Nmax];
+  double *kvec = new double[Nmax];
+  for (int j = 0; j < Nmax; j++) {
+    ek[j] = 0.;  kvec[j] = j;
+  }  
+ 
+  // calculate the energy spectrum in Fourier space
+    
+  calc_energy_spectrum (ek, kvec, cvv, kxvec, kyvec,
+			Nmax, ndata, sim.ncells, nvels, sim.lx, njump);
 		    
   // write the computed data
   
@@ -320,9 +363,13 @@ int main (int argc, char *argv[]) {
   write_2d_analysis_data(kvec, ek, Nmax, outfilepath);
   
   // deallocate the arrays
-  
+ 
+  delete [] ek;
+  delete [] kvec;
+  delete [] kxvec;
+  delete [] kyvec;
   delete [] cvv;
-  for (int i = 0; i < nsteps; i++) {
+  for (int i = 0; i < sim.nsteps; i++) {
     delete [] x[i];
     delete [] y[i];
   }
