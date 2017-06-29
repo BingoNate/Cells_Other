@@ -73,36 +73,26 @@ double calc_areas_per_frame (const double * const *x, const double * const *y,
 
 int main (int argc, char *argv[]) {
 
- // get the file name by parsing and load simulation data
+ // set data fetching properties and make allocations
+ 
+ double **x;
+ double **y;
+ std::string cells_or_beads = "beads";	   // analysis will be done over cells
+ bool get_image = true;			   // analysis will be done over images 
+					   // instead of unwrapped coords
+					    
+ // get the file name by parsing and load simulation data as well as positions
   
   string filename = argv[1];
-  cout << "Calculating area of the cells for the following file: \n" << filename << endl;
-  SimInfo sim(filename);  
+  SimInfo sim(filename, cells_or_beads, get_image, x, y);  
+  
+  // print info
+   
+  cout << "Calculating areas from " << cells_or_beads << 
+    " for the following file: \n" << filename << endl;
   cout << "nsteps = " << sim.nsteps << endl;
   cout << "ncells = " << sim.ncells << endl;
   cout << "nbeads = " << sim.nbeads << endl;
-    
-  // read in the bead position data all at once
-  
-  /* the position data is stored in the following format:
-  (nsteps, 2, nbeads)
-  the data will be loaded as follows:
-  (nsteps, nbeads) in x and y separately 
-  */
-  
-  double **x = new double*[sim.nsteps];
-  for (int i = 0; i < sim.nsteps; i++) x[i] = new double[sim.nbeads];
-  
-  double **y = new double*[sim.nsteps];
-  for (int i = 0; i < sim.nsteps; i++) y[i] = new double[sim.nbeads];
-  
-  for (int i = 0; i < sim.nsteps; i++) {
-    for (int j = 0; j < sim.nbeads; j++) {
-      x[i][j] = 0.; y[i][j] = 0.;
-    }
-  }
-  
-  read_all_pos_data(filename, x, y, sim.nsteps, sim.nbeads, "/beads/xu");
 
   // set variables related to the analysis
   

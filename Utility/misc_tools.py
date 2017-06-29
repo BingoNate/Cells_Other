@@ -220,6 +220,7 @@ class Simulation:
         self.gamma_n = 1.
         self.N_avg = np.average(self.nbpc)
         self.r_avg = self.bl*self.N_avg/2/np.pi
+        self.area_avg = np.pi*self.r_avg**2*0.9
         self.Dt = self.kT/(self.gamma_n*self.N_avg)
         if self.fp == 0.:
             self.tau_A = 0.0

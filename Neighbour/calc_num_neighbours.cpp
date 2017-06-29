@@ -1,9 +1,9 @@
 
-/* calculate the density histogram in terms of the center of mass of cells */
+/* calculate average number of neighbours per cell per simulation parameters */
 
 // COMPILATION AND RUN COMMANDS:
-// g++ -O3 -Wl,-rpath=$HOME/hdf5/lib -L$HOME/hdf5/lib -I$HOME/hdf5/include ${spath}/calc_area_of_cells.cpp ${upath}/read_write.cpp -lhdf5 -lm -o calc_density_histo
-// ./calc_density_histo out.h5 ${path}/Density_histo.txt
+// g++ -O3 -Wl,-rpath=$HOME/hdf5/lib -L$HOME/hdf5/lib -I$HOME/hdf5/include ${spath}/calc_num_neighbours.cpp ${upath}/read_write.cpp -lhdf5 -lm -o calc_num_neighbours
+// ./calc_num_neighbours out.h5 ${path}/Num_neighbour.txt
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -28,39 +28,18 @@ using namespace std;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-vector<double> calc_densities (const double * const *x, const double * const *y, SimInfo sim) {
+double calc_num_neighbours (const double * const *x, const double * const *y, SimInfo sim) {
   /* calculate densities per bin per frame */
   
-  // set bin properties
+  double avg_num_neigh = 0.;
   
-  double avg_cell_diameter = 40.*0.5/(2.*pi);
-  double bin_length = 4.*avg_cell_diameter;
-  int nbins = int(floor(sim.lx/bin_length));
-  cout << "number of bins : " << nbins << endl;
-  int nsize = nbins*nbins;
-  bin_length = sim.lx/nbins;
-  vector<double> densities(nsize, 0.);
-  
-  // calculate the density per bin per frame
+  // build a neighbour list 
   
   for (int step = 0; step < sim.nsteps; step++) {
-    cout << "step / nsteps : " << step << " / " << sim.nsteps << endl;
     
-    for (int j = 0; j < sim.nbeads; j++) {
-      int xbin = get_bin_number(x[step][j], bin_length, nbins);
-      int ybin = get_bin_number(y[step][j], bin_length, nbins);
-      int bin = xbin*nbins + ybin;
-      densities[bin]++;
-      
-    }
   }
   
-  // normalization
-  
-  for (int j = 0; j < nsize; j++) 
-    densities[j] /= (sim.nsteps*bin_length*bin_length);
-  
-  return densities;
+  return avg_num_neigh;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -72,7 +51,7 @@ int main (int argc, char *argv[]) {
  double **x;
  double **y;
  std::string cells_or_beads = "beads";	   // analysis will be done over cells
- bool get_image = true;			   // analysis will be done over images 
+ bool get_image = false;		   // analysis will be done over images 
 					   // instead of unwrapped coords
 					    
  // get the file name by parsing and load simulation data as well as positions
@@ -82,7 +61,7 @@ int main (int argc, char *argv[]) {
   
   // print info
    
-  cout << "Calculating density histogram for " << cells_or_beads << 
+  cout << "Calculating number of neighbours from " << cells_or_beads << 
     " for the following file: \n" << filename << endl;
   cout << "nsteps = " << sim.nsteps << endl;
   cout << "ncells = " << sim.ncells << endl;
@@ -90,13 +69,13 @@ int main (int argc, char *argv[]) {
     
   // perform the analysis
   
-  vector<double> densities = calc_densities(x, y, sim);
+  
 					    
   // write the computed data
   
   string outfilepath = argv[2];
-  cout << "Writing density histogram to the following file: \n" << outfilepath << endl;  
-  write_1d_vec_analysis_data(densities, densities.size(), outfilepath);
+  //cout << "Writing number of neighbours to the following file: \n" << outfilepath << endl;  
+  //write_1d_vec_analysis_data(densities, densities.size(), outfilepath);
   
   // deallocate the arrays
   // 
