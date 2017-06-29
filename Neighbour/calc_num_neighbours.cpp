@@ -62,7 +62,9 @@ double calc_num_neighbours (const double * const *x, const double * const *y, Si
   rcut = sim.lx/nboxes;  
   vector<int> heads(nsize, -1);
   vector<int> llist(sim.nbeads*100, -1);
-    
+
+  vector<int> num_neighs_per_cell(sim.ncells, 0);
+
   for (int step = 0; step < sim.nsteps; step++) {
     cout << "step / nsteps : " << step << " / " << sim.nsteps << endl;
     
@@ -72,11 +74,36 @@ double calc_num_neighbours (const double * const *x, const double * const *y, Si
 			  rcut, nboxes, nsize,
 			  step, sim.nbeads, sim.lx);
 			  
-    // build the neighbour list for each bead
+    // count the number of neighbours of each cell
     
-    build_neighbour_list();
+    vector<int> num_neighs_per_cell_per_time(sim.ncells, 0);
+    int k = 0;
+    for (int n = 0; n < sim.ncells; n++) {
+      for (int j = 0; j < sim.nbpc[j]; j++) {
+        int xbin = get_bin_number(get_single_img_pos(x[step][k], sim.lx), rcut, nboxes);
+        int ybin = get_bin_number(get_single_img_pos(y[step][k], sim.ly), rcut, nboxes);
+        //int bin = xbin*nboxes + ybin;
+        
+        // loop over the neighbouring bins
+        
+        for (int ix = -1; ix < 2; ix++) {
+          int xneighbin = (ix+xbin)%nboxes;
+          
+          for (int iy = -1; iy < 2; iy++) {
+            int yneighbin = (iy+ybin)%nboxes;
+            int neighbin = xneighbin*nboxes + yneighbin;
+            
+            // restore the head bead
+            
+            
+            
+          }       // y neighbour bin loop
+        }         // x neighbor bin loop
+        k++;
+      }           // nbpc loop
+    }             // cell loop
     
-  }
+  }               // timestep loop
   
   return avg_num_neigh;
 }
