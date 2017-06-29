@@ -4,20 +4,22 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include "basic.hpp"
+#include "read_write.hpp"
 
 class SimInfo {
   /* container for general simulation data */
   public:
     
-    SimInfo(std::string);
+    SimInfo(std::string, std::string, bool, double**&, double**&); 
     int nsteps, nbeads, nsamp, ncells;
     double lx, ly, dt, eps, rho, fp, areak, kappa, bl, sigma;
     std::vector<int> nbpc;
   
 };
 
-SimInfo::SimInfo(std::string filename, std::string cells_or_beads, bool get_image,
-		 double **x, double **y) {
+SimInfo::SimInfo(std::string filename, std::string cells_or_beads, 
+		 bool get_image, double **&x, double **&y) {
   
   // read in general simulation data
 
@@ -46,21 +48,22 @@ SimInfo::SimInfo(std::string filename, std::string cells_or_beads, bool get_imag
   if (cells_or_beads == "cells") {
     ndata = ncells;
     data_path = "/cells/comu";
+  }
   else if (cells_or_beads == "beads") {
     ndata = nbeads;
     data_path = "/beads/xu";
   }
   else {
-    throw std::invalid_argument( "cells_or_beads variable should be cells or beads!" );
+    throw "cells_or_beads variable should be cells or beads!";
   }
   
   // allocate and initialize positions
   
   x = new double*[nsteps];
-  for (int i = 0; i < sim.nsteps; i++) x[i] = new double[ndata];
+  for (int i = 0; i < nsteps; i++) x[i] = new double[ndata];
   
   y = new double*[nsteps];
-  for (int i = 0; i < sim.nsteps; i++) y[i] = new double[ndata];
+  for (int i = 0; i < nsteps; i++) y[i] = new double[ndata];
   
   for (int i = 0; i < nsteps; i++) {
     for (int j = 0; j < ndata; j++) {
@@ -74,8 +77,8 @@ SimInfo::SimInfo(std::string filename, std::string cells_or_beads, bool get_imag
   
   // get the image positions in the central unit box if chosen so
   
-  if (get_image) {
-    get_img_pos(x, y, nsteps, ndata, sim.lx, sim.ly);
+  if (get_image) 
+    get_img_pos(x, y, nsteps, ndata, lx, ly);
   
   return;
 }

@@ -57,7 +57,7 @@ vector<double> calc_densities (const double * const *x, const double * const *y,
   // normalization
   
   for (int j = 0; j < nsize; j++) 
-    densities[j] /= (sim.nsteps*nsize);
+    densities[bin] /= (sim.nsteps*nsize);
   
   return densities;
 }
