@@ -65,16 +65,11 @@ double calc_num_neighbours (const double * const *x, const double * const *y, Si
     
   for (int step = 0; step < sim.nsteps; step++) {
     cout << "step / nsteps : " << step << " / " << sim.nsteps << endl;
-    
-    // build the linked cell/box list
-    
     build_linked_cell_list(x, y, heads, llist,
 			  rcut, nboxes, nsize,
 			  step, sim.nbeads, sim.lx);
 			  
-    // build the neighbour list for each bead
     
-    build_neighbour_list();
     
   }
   
