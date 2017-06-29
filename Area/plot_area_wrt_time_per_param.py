@@ -127,7 +127,8 @@ def main():
 
     analysisdatabase = '/usr/users/iff_th2/duman/Cells_in_LAMMPS/DATA/'  
     analysisdatabase += args.savefolder + '/'        
-    x, data, param_choice, sims = misc_tools.collect_data(args, analysisdatabase)
+    x, data, param_choice, sims = misc_tools.collect_data(args, analysisdatabase, 
+                                                          read_write.read_2d_analysis_data)
         
     ### plot the data as a function of the parameter
     

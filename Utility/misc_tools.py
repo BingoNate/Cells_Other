@@ -75,7 +75,7 @@ def gen_save_props(param_choice, sim):
 
 ##############################################################################
     
-def collect_data(args, analysisdatabase, read_analysis_func=read_write.read_2d_analysis_data):
+def collect_data(args, analysisdatabase, read_analysis_func):
     """ collect analysis data per chosen parameter,
     where the chosen param is an array and the rest are scalars"""
 

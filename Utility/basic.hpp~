@@ -90,15 +90,8 @@ inline void deallocate_2d_array (T &arr, int ndata) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-inline int get_bin_number (double x, double l, int nbins) {
+inline int get_bin_number (double x, double l) {
   /* calculate the bin of the coordinate assumming it is image */
   
-  int bin = static_cast<int>(x/l);
-  if (bin < 0) {
-    bin += nbins;
-  else if (bin >= nbins) {
-    bin -= nbins;
-  }
-  
-  return bin;
+  return static_cast<int>(x/l);
 }
