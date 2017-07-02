@@ -29,7 +29,7 @@ using namespace std;
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 double calc_avg_area_diff (const double * const *x, const double * const *y,
-                           vector<double> & init_areas,
+                           const vector<double> & init_areas,
                            const int nsteps, const int ncells, const int nbeads,
                            const vector<int> & nbpc) {
   /* calculate the area covered by cells per frame and return the averaged area over all the frames */
