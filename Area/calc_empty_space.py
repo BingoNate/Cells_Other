@@ -102,6 +102,7 @@ def plot_png(xpbc, ypbc, nbpc, ncells, lx, ly, frame):
     savepath = "area_polygons_" + str(frame) + ".png"          
     plt.savefig(savepath, dpi=300, bbox_inches='tight', pad_inches=0.0)
     plt.clf()
+    fig.close()
     
     return savepath
 
@@ -113,6 +114,7 @@ def convert_binary(pngpath):
     im = Image.open(pngpath)
     bim = im.convert('1') 
     os.system('rm ' + pngpath)
+    im.close()
 
     return np.ravel(np.asarray(bim))
     
