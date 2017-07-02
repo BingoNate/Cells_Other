@@ -123,8 +123,8 @@ def calc_empty_space_ratio(bpos, cpos, nbpc, sim):
     
     empty_space_ratio = 0.
     for step in xrange(sim.nsteps):
-        xpbc, ypbc = correct_pbc_around_com(bpos.xi[step, 0, :], bpos.xi[step, 1, :], 
-                                            cpos.xi[step, 0, :], cpos[step, 1, :], 
+        xpbc, ypbc = correct_pbc_around_com(bpos[step, 0, :], bpos[step, 1, :], 
+                                            cpos[step, 0, :], cpos[step, 1, :], 
                                             sim.nbeads, sim.ncells, nbpc, 
                                             sim.lx, sim.ly)
         pngpath = plot_png(xpbc, ypbc,
