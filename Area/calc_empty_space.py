@@ -102,7 +102,7 @@ def plot_png(xpbc, ypbc, nbpc, ncells, lx, ly, frame):
     savepath = "area_polygons_" + str(frame) + ".png"          
     plt.savefig(savepath, dpi=300, bbox_inches='tight', pad_inches=0.0)
     plt.clf()
-    fig.close()
+    plt.close(fig)
     
     return savepath
 
