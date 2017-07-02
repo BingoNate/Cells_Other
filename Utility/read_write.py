@@ -117,10 +117,20 @@ def read_sim_info(folder, bending=False):
     
 ##############################################################################
    
-def write_single_analysis_data(data, f):
+def write_single_analysis_data(data, savebase, savefolder, sim, bending=False):
     """ write single analysis data to the corresponding file"""
-
-    fl = open(f, 'w')
+    
+    base = savebase + savefolder + '/'
+    os.system("mkdir -p " + base)
+    if bending:
+        fpath = base + savefolder + "_eps_" + \
+            str(sim.eps) + "_fp_" + str(sim.fp) + "_areak_" + str(sim.areak) + \
+            "_kappa_" + str(sim.kappa) + ".txt"  
+    else:
+        fpath = base + savefolder + "_eps_" + \
+            str(sim.eps) + "_fp_" + str(sim.fp) + "_areak_" + str(sim.areak) + ".txt"   
+            
+    fl = open(fpath, 'w')
     fl.write(str(data) + "\n")
     fl.close()
     

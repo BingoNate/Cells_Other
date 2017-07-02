@@ -36,6 +36,17 @@ def get_img(x, lx):
     return x-np.floor(x/lx)*lx
 
 ##############################################################################
+
+def coords_per_cells(x, y, nbpc):
+    """ get the coordinates of beads in terms of cells"""
+    
+    splitter = np.cumsum(nbpc)[:-1]
+    x_per_cell = np.split(x, splitter)
+    y_per_cell = np.split(y, splitter)
+    
+    return x_per_cell, y_per_cell
+
+##############################################################################
    
 def gen_save_props(param_choice, sim):
     """ generate saving properties for the figure"""
