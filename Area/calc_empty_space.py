@@ -53,6 +53,7 @@ def correct_pbc_around_com(xi, yi, xcom, ycom, nbeads, ncells, nbpc, lx, ly):
     
     xpbc = np.zeros((nbeads), dtype=np.float32)
     ypbc = np.zeros((nbeads), dtype=np.float32)
+
     
     k = 0
     for n in xrange(ncells):
@@ -61,15 +62,13 @@ def correct_pbc_around_com(xi, yi, xcom, ycom, nbeads, ncells, nbpc, lx, ly):
             dy = pbc_dist_around_com(yi[k], ycom[n], ly)
             xpbc[k] = xi[k] + dx
             ypbc[k] = yi[k] + dy
-            xi[k] += dx
-            yi[k] += dy
             k += 1
         
     return xpbc, ypbc   
  
 ##############################################################################
     
-def plot_png(xpbc, ypbc, xi, yi, nbpc, lx, ly, frame):
+def plot_png(xpbc, ypbc, nbpc, ncells, lx, ly, frame):
     """ plot the frame as colored png image"""
  
     ax_len = 1.0                          # Length of one subplot square box
@@ -93,7 +92,7 @@ def plot_png(xpbc, ypbc, xi, yi, nbpc, lx, ly, frame):
     ax0.add_collection(p)
     ax0.autoscale_view()
     
-    ax0.scatter(xi/0.5, yi/0.5, s=1.0, c='black', alpha=1.0)
+    ax0.scatter(xpbc/0.5, ypbc/0.5, s=1.0, c='black', alpha=1.0)
     
     ax0.axis('equal')
     ax0.set_xlim((-10, lx/0.5+10))
@@ -128,10 +127,11 @@ def calc_empty_space_ratio(bpos, cpos, nbpc, sim):
                                             cpos.xi[step, 0, :], cpos[step, 1, :], 
                                             sim.nbeads, sim.ncells, nbpc, 
                                             sim.lx, sim.ly)
-        pngpath = plot_png(xpbc, ypbc, bpos.xi[step, 0, :], bpos.xi[step, 1, :],
-                           nbpc, sim.lx, sim.ly, step)
+        pngpath = plot_png(xpbc, ypbc,
+                           nbpc, sim.ncells, sim.lx, sim.ly, step)
         binary_data = convert_binary(pngpath)
         empty_space_ratio += float(len(binary_data[binary_data==False]))/float(len(binary_data))
+        print "step / nsteps : ", str(step), " / ", str(sim.nsteps)
     empty_space_ratio /= sim.nsteps
         
     return empty_space_ratio
