@@ -28,45 +28,57 @@ using namespace std;
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-double calc_areas_per_frame (const double * const *x, const double * const *y,
-			     vector<double> & area_per_frame,
-			     const int nsteps, const int ncells, const int nbeads,
-			     const vector<int> & nbpc) {
+double calc_avg_area_diff (const double * const *x, const double * const *y,
+                           vector<double> & init_areas,
+                           const int nsteps, const int ncells, const int nbeads,
+                           const vector<int> & nbpc) {
   /* calculate the area covered by cells per frame and return the averaged area over all the frames */
   
-  double avg_area = 0.;
+  double adiff = 0.;
   
   for (int step = 0; step < nsteps; step++) {
     
     cout << "steps / nsteps : " << step << " / " << nsteps << endl;
     
-    double areapf = 0.;
+    double adiff_per_cell = 0.;
     int k = 0;
     
     for (int n = 0; n < ncells; n++) {
-      double areapc = 0.;
+      double area = 0.;
       
       for (int j = 0; j < nbpc[n]-1; j++) {
-	areapc += x[step][k]*y[step][k+1] - x[step][k+1]*y[step][k];
-	k++;
-	
-      }		// nbpc
+        area += x[step][k]*y[step][k+1] - x[step][k+1]*y[step][k];
+        k++;
+      }		// beads of the cell
       
-      areapc += x[step][k]*y[step][k-nbpc[n]+1] - x[step][k-nbpc[n]+1]*y[step][k];
+      area += x[step][k]*y[step][k-nbpc[n]+1] - x[step][k-nbpc[n]+1]*y[step][k];
       k++;
-      areapf += areapc/2.;
+      area /= 2.;
+      adiff_per_cell += area - init_areas[n];
       
-    }	 	// ncells
+    }	 	// cells
     
-    areapf /= ncells;
-    area_per_frame[step] = areapf; 
-    avg_area += areapf;
+    adiff += adiff_per_cell/ncells;
     
-  }     	// nsteps
+  }     	// timesteps
   
-  avg_area /= nsteps;
+  adiff /= nsteps;
   
-  return avg_area;
+  return adiff;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+vector<double> calc_initial_areas (const vector<int> & nbpc, const int ncells) {
+  /* calculate the initial target areas of cells */
+  
+  vector<double> A0(ncells, 0.);
+  for (int j = 0; j < ncells; j++) {
+    double rad = nbpc[j]*0.5/(2.*pi);
+    A0[j] = 0.9*pi*rad*rad;
+  }
+  
+  return A0;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,9 +89,9 @@ int main (int argc, char *argv[]) {
  
  double **x;
  double **y;
- std::string cells_or_beads = "beads";	   // analysis will be done over cells
- bool get_image = true;			   // analysis will be done over images 
-					   // instead of unwrapped coords
+ std::string cells_or_beads = "beads";	   // analysis will be done over cells or beads
+ bool get_image = false;			   // analysis will be done over images
+                                 // instead of unwrapped coords
 					    
  // get the file name by parsing and load simulation data as well as positions
   
@@ -93,14 +105,11 @@ int main (int argc, char *argv[]) {
   cout << "nsteps = " << sim.nsteps << endl;
   cout << "ncells = " << sim.ncells << endl;
   cout << "nbeads = " << sim.nbeads << endl;
-
-  // set variables related to the analysis
-  
-  vector<double> area_per_frame(sim.nsteps, 0.);
   
   // perform the analysis
-  
-  double avg_area_diff = calc_areas_per_frame(x, y, area_per_frame,
+
+  vector<double> initial_areas = calc_initial_areas(sim.nbpc, sim.ncells);
+  double avg_area_diff = calc_avg_area_diff(x, y, initial_areas,
 					 sim.nsteps, sim.ncells, sim.nbeads, sim.nbpc);
 					   
   // write the computed data
