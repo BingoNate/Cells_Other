@@ -15,6 +15,7 @@ class SimInfo {
     int nsteps, nbeads, nsamp, ncells;
     double lx, ly, dt, eps, rho, fp, areak, kappa, bl, sigma;
     std::vector<int> nbpc;
+    std::vector<int> cid;
   
 };
 
@@ -45,6 +46,7 @@ SimInfo::SimInfo(std::string filename, std::string cells_or_beads,
   
   int ndata;
   std::string data_path;
+  bool load_cid = false;
   if (cells_or_beads == "cells") {
     ndata = ncells;
     data_path = "/cells/comu";
@@ -52,6 +54,7 @@ SimInfo::SimInfo(std::string filename, std::string cells_or_beads,
   else if (cells_or_beads == "beads") {
     ndata = nbeads;
     data_path = "/beads/xu";
+    load_cid = true;
   }
   else {
     throw "cells_or_beads variable should be cells or beads!";
@@ -79,6 +82,13 @@ SimInfo::SimInfo(std::string filename, std::string cells_or_beads,
   
   if (get_image) 
     get_img_pos(x, y, nsteps, ndata, lx, ly);
+  
+  if (load_cid) {
+    int cid_buffer[nbeads];
+    for (int i = 0; i < nbeads; i++) cid_buffer[i] = 0;
+    read_integer_array(filename, "/beads/cid", cid_buffer);  
+    for (int i = 0; i < nbeads; i++) cid.push_back(cid_buffer[i]);    
+  }
   
   return;
 }

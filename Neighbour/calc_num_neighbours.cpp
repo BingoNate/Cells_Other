@@ -34,7 +34,7 @@ void build_linked_cell_list(const double * const *x, const double * const *y,
 			    const double wbin, const int nboxes, const int nsize,
 			    const int step, const int natoms, const double l) {
   /* build a linked cell/box list */
-  
+    
   for (int j = 0; j < natoms; j++) {
     int xbin = get_bin_number(get_single_img_pos(x[step][j], l), wbin, nboxes);
     int ybin = get_bin_number(get_single_img_pos(y[step][j], l), wbin, nboxes);
@@ -43,7 +43,7 @@ void build_linked_cell_list(const double * const *x, const double * const *y,
     llist[j] = heads[bin];
     heads[bin] = j;
   }
-    
+      
   return;
 }
 
@@ -83,17 +83,30 @@ double calc_num_neighbours (const double * const *x, const double * const *y, Si
         int xbin = get_bin_number(get_single_img_pos(x[step][k], sim.lx), rcut, nboxes);
         int ybin = get_bin_number(get_single_img_pos(y[step][k], sim.ly), rcut, nboxes);
         //int bin = xbin*nboxes + ybin;
-        
+        	
         // loop over the neighbouring bins
         
         for (int ix = -1; ix < 2; ix++) {
-          int xneighbin = (ix+xbin)%nboxes;
+	  int xneighbin = wrap_to_range(ix+xbin, nboxes);
           
           for (int iy = -1; iy < 2; iy++) {
-            int yneighbin = (iy+ybin)%nboxes;
+            int yneighbin = wrap_to_range(iy+ybin, nboxes);
             int neighbin = xneighbin*nboxes + yneighbin;
-            
+	    
             // restore the head bead
+	    
+	    int idx = heads[neighbin];
+	    
+	    // traverse the neighbouring bin
+	    
+	    while (idx != -1) {
+	      
+	      
+	      // traverse the linked list 
+	      
+	      idx = llist[idx];
+	      
+	    }     // neighbouring bin
             
             
             

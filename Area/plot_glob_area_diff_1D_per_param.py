@@ -1,11 +1,11 @@
 
-""" Plot density histogram per parameter"""
+""" Plot the area difference per frame for a 1D set of simulation parameters"""
 
 ### example command line arguments: 
 ###    -e=1.0 -f=0.5
 ###    -fl=/local/duman/SIMULATIONS/Cells_in_LAMMPS/density_0.8/ 
 ###         -sb=/usr/users/iff_th2/duman/Cells_in_LAMMPS/PLOTS/
-###             -sf=Area_per_frame
+###             -sf=Area_diff
 
 ##############################################################################
 
@@ -20,12 +20,12 @@ mpl.use('Agg', warn=False)
 import matplotlib.pyplot as plt
 import read_write
 import misc_tools 
-   
+    
 ##############################################################################
      
 def plot_data(x, data, param_choice, sims, savebase, savefolder, save_eps):
     """ plot the data as a function of the chosen parameter"""
-    
+
     ### set general plot properties
 
     #downlim = -1
@@ -41,7 +41,8 @@ def plot_data(x, data, param_choice, sims, savebase, savefolder, save_eps):
  
     ### save properties
     
-    name, pname = misc_tools.gen_save_props(param_choice, sims[data.keys()[0]])
+    name, pname, xlab, lab = \
+        misc_tools.gen_save_props(param_choice, sims[data.keys()[0]])
     base = savebase + savefolder + '/'
     os.system("mkdir -p " + base)  
     base = savebase + savefolder + '/' + name + '/'
@@ -50,26 +51,16 @@ def plot_data(x, data, param_choice, sims, savebase, savefolder, save_eps):
     ### plot 
     
     keys = np.sort(data.keys())
+    y = np.zeros((len(keys)), dtype=np.float32)
     
-    for p in keys:
+    for j, p in enumerate(keys):
         
         sim = sims[p]       # simulation information
-        y = data[p]         # analysis data
-        
-        ### calculate the histogram
-        
-        yh, xh = np.histogram(y, bins=50, normed=True)
-        xh = (xh[1:] + xh[:-1])/2.        
-    
-        label = '$\\epsilon=$' + str(sim.eps) + \
-            '$,f=$' + str(sim.fp) + '$,\\kappa_{A}=$' + str(sim.areak) + \
-            '$,\\kappa=$' + str(sim.kappa)
-        line0 = ax0.plot(xh, yh, \
-                         linewidth=2.0, label=label)
-        
-        ### check normalization of the probability distribution
-        
-        print np.sum(np.diff(xh)*yh[:-1])
+        y[j] = data[p]         # analysis data
+
+    line0 = ax0.scatter(x, y, label=lab, s=80)
+    line1 = ax0.plot(x, y, '--', label='_nolegend_')
+    ax0.set_xscale('log')
     
     ### title
     
@@ -78,11 +69,9 @@ def plot_data(x, data, param_choice, sims, savebase, savefolder, save_eps):
     
     ### labels
         
-#    ax0.set_xlabel(r"$\phi$", fontsize=40)
-#    ax0.set_ylabel(r"$P(\phi)$", fontsize=40)
-    ax0.set_xlabel(r"$\rho\sigma^2$", fontsize=40)
-    ax0.set_ylabel(r"$P(\rho\sigma^2)$", fontsize=40)
-    
+    ax0.set_xlabel(xlab, fontsize=40)
+    ax0.set_ylabel(r"$\langle \Delta A \rangle/\sigma^2$", fontsize=40)
+
     ### limits
 
     #ax0.set_xlim((-1, 15))
@@ -96,7 +85,7 @@ def plot_data(x, data, param_choice, sims, savebase, savefolder, save_eps):
     
     ### legend
 
-    ax0.legend(bbox_to_anchor=(0.005, 0.,0.65, 1.), loc=2, borderaxespad=0., \
+    ax0.legend(bbox_to_anchor=(0.3, 0.,0.65, 1.), loc=2, borderaxespad=0., \
         prop={'size': 20}, mode="expand", frameon=False)
     
     savepath1 = base + savefolder + "_per_" + pname + ".png"
@@ -130,8 +119,8 @@ def main():
     parser.add_argument("-sb", "--savebase", nargs="?", \
                         const = "/usr/users/iff_th2/duman/Cells_in_LAMMPS/PLOTS/", \
                         help="Folder to save the data, as in /usr/users/iff_th2/duman/Cells_in_LAMMPS/PLOTS/") 
-    parser.add_argument("-sf", "--savefolder", nargs="?", const="Density_histo", \
-                        help="Specific folder for saving, as in Density_histo")   
+    parser.add_argument("-sf", "--savefolder", nargs="?", const="Area_diff", \
+                        help="Specific folder for saving, as in Area_diff")   
     parser.add_argument("-s","--save_eps", action="store_true", 
                         help="Decide whether to save in eps/pdf or not")            
     args = parser.parse_args()
@@ -140,9 +129,9 @@ def main():
 
     analysisdatabase = '/usr/users/iff_th2/duman/Cells_in_LAMMPS/DATA/'  
     analysisdatabase += args.savefolder + '/'        
-    x, data, param_choice, sims = misc_tools.collect_data(args, analysisdatabase, 
-                                                          read_write.read_2d_analysis_data)
-            
+    x, data, param_choice, sims = misc_tools.collect_data(args, analysisdatabase,
+                                                          read_write.read_single_analysis_data)
+        
     ### plot the data as a function of the parameter
     
     plot_data(x, data, param_choice, sims, args.savebase, args.savefolder, args.save_eps)

@@ -42,10 +42,27 @@ inline void SWAP (T &a, T &b) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+template<class T1, class T2>
+inline T1 wrap_to_range (T1 x, T2 l) {
+  /* wrap the value x into the range [0,l) */
+  
+  T1 val = val-ifloor(val/l)*l;
+  if (val < 0) 
+    val += l;
+  
+  return val;
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 inline double get_single_img_pos (double x, double l) {
   /* calculate the image position in the central box */
   
-  return x-ifloor(x/l)*l;
+  double val = x-ifloor(x/l)*l;
+  if (val < 0.) 
+    val += l;
+  
+  return val;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////

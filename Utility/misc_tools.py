@@ -47,7 +47,42 @@ def coords_per_cells(x, y, nbpc):
     return x_per_cell, y_per_cell
 
 ##############################################################################
-   
+ 
+def gen_labels(params, param_choice, sim):
+    """ generate labels according to the parameter choice for helping in plots"""
+    
+    eps_sym = r'$\epsilon$'
+    f_sym = r'$\f_m$'
+    ka_sym = r'$\kappa_A$'
+    kb_sym = r'$\kappa_B$'
+    
+    if param_choice == 'eps':
+        xlab = eps_sym
+        label = f_sym + "=" + str(sim.fp) + "," + \
+            ka_sym + "=" + str(sim.areak) + "," + \
+            kb_sym + "=" + str(sim.kappa)
+    elif param_choice == 'fp':
+        xlab = f_sym
+        label = eps_sym + "=" + str(sim.eps) + "," + \
+            ka_sym + "=" + str(sim.areak) + "," + \
+            kb_sym + "=" + str(sim.kappa)        
+    elif param_choice == 'areak':
+        xlab = ka_sym
+        label = eps_sym + "=" + str(sim.eps) + "," + \
+            f_sym + "=" + str(sim.fp) + "," + \
+            kb_sym + "=" + str(sim.kappa)        
+    elif param_choice == 'kappa':
+        xlab = kb_sym
+        label = eps_sym + "=" + str(sim.eps) + "," + \
+            f_sym + "=" + str(sim.fp) + "," + \
+            ka_sym + "=" + str(sim.areak)        
+    else:
+        raise ValueError("Parameter choice is non-existing!")
+    
+    return xlab, label
+ 
+##############################################################################
+    
 def gen_save_props(param_choice, sim):
     """ generate saving properties for the figure"""
     
@@ -58,31 +93,33 @@ def gen_save_props(param_choice, sim):
         pname = name + '_eps_' + str(sim.eps) + '_fp_' + str(sim.fp) + \
             '_kappa_' + str(sim.kappa)
         xlab = '$\kappa_A$'
-        tit = '$\epsilon=$' + str(sim.eps) + ',$f_m=$' + str(sim.fp) + \
-            ',$\kappa=$' + str(sim.kappa)
+        lab = '$\epsilon=$' + str(sim.eps) + ',$f_m=$' + str(sim.fp) + \
+            ',$\kappa_B=$' + str(sim.kappa)
     elif param_choice == 'eps':
         name = 'EPS'
         pname = name + '_fp_' + str(sim.fp) + '_areak_' + str(sim.areak) + \
             '_kappa_' + str(sim.kappa)
         xlab = '$\epsilon$'
-        tit = '$f_m=$' + str(sim.fp) + ',$\kappa_A=$' + str(sim.areak) + \
-            ',$\kappa=$' + str(sim.kappa)        
+        lab = '$f_m=$' + str(sim.fp) + ',$\kappa_A=$' + str(sim.areak) + \
+            ',$\kappa_B=$' + str(sim.kappa)        
     elif param_choice == 'fp':
         name = 'FP'
         pname = name + '_eps_' + str(sim.eps) + '_areak_' + str(sim.areak) + \
             '_kappa_' + str(sim.kappa)
         xlab = '$f_{m}$'
-        tit = '$\epsilon=$' + str(sim.eps) + ',$\kappa_A=$' + str(sim.areak) + \
-            ',$\kappa=$' + str(sim.kappa)          
+        lab = '$\epsilon=$' + str(sim.eps) + ',$\kappa_A=$' + str(sim.areak) + \
+            ',$\kappa_B=$' + str(sim.kappa)          
     elif param_choice == 'kappa':
         name = 'KAPPA'
         pname = name + '_eps_' + str(sim.eps) + '_fp_' + str(sim.fp) + \
             '_areak_' + str(sim.areak)
-        xlab = '$\kappa$'
-        tit = '$\epsilon=$' + str(sim.eps) + ',$f_m=$' + str(sim.fp) + \
+        xlab = '$\kappa_B$'
+        lab = '$\epsilon=$' + str(sim.eps) + ',$f_m=$' + str(sim.fp) + \
             ',$\kappa_A=$' + str(sim.areak) 
+    else:
+        raise ValueError("Parameter choice is non-existing!")            
             
-    return name, pname
+    return name, pname, xlab, lab
 
 ##############################################################################
     
