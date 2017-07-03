@@ -21,6 +21,12 @@ inline int ifloor (double doubval) {
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+inline int ifloor_on_i (double doubval) {
+    return ( doubval >= 0. ? (int)(doubval) : ((int)doubval)-1 );
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 inline long double dnearbyint (double doubval) {
     return ( doubval >= 0. ? (long)(doubval + 0.5) : (long)(doubval - 0.5) );
 }
@@ -46,7 +52,7 @@ template<class T1, class T2>
 inline T1 wrap_to_range (T1 x, T2 l) {
   /* wrap the value x into the range [0,l) */
   
-  T1 val = val-ifloor(val/l)*l;
+  T1 val = x-ifloor_on_i(x/l)*l;
   if (val < 0) 
     val += l;
   
